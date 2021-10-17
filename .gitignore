@@ -1,0 +1,5 @@
+# Project exclude paths
+/design-pattern/target/
+/distributed-transaction/target/
+/jvm-review/target/
+/multi-thread/target/
