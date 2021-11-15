@@ -11,7 +11,7 @@ public class ThreadStatus {
         }, "t1");
         //runnable
         Thread t2 = new Thread(() -> {
-            while (true){
+            while (true) {
 
             }
 
@@ -28,13 +28,13 @@ public class ThreadStatus {
 
         //timed_waiting
         Thread t4 = new Thread(() -> {
-        synchronized (ThreadStatus.class){
-            try {
-                Thread.sleep(1000000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            synchronized (ThreadStatus.class) {
+                try {
+                    Thread.sleep(1000000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
         }, "t4");
         t4.start();
@@ -55,14 +55,14 @@ public class ThreadStatus {
          * block
          */
         Thread t6 = new Thread(() -> {
-        //无法获取得到锁
-         synchronized (ThreadStatus.class){
-             try {
-                 Thread.sleep(1000000);
-             } catch (InterruptedException e) {
-                 e.printStackTrace();
-             }
-         }
+            //无法获取得到锁
+            synchronized (ThreadStatus.class) {
+                try {
+                    Thread.sleep(1000000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }, "t6");
 
         t6.start();
@@ -74,19 +74,15 @@ public class ThreadStatus {
             e.printStackTrace();
         }
 
-        log.debug("t1 state {}",t1.getState());
-        log.debug("t2 state {}",t2.getState());
-        log.debug("t3 state {}",t3.getState());
-        log.debug("t4 state {}",t4.getState());
-        log.debug("t5 state {}",t5.getState());
-        log.debug("t6 state {}",t6.getState());
+        log.debug("t1 state {}", t1.getState());
+        log.debug("t2 state {}", t2.getState());
+        log.debug("t3 state {}", t3.getState());
+        log.debug("t4 state {}", t4.getState());
+        log.debug("t5 state {}", t5.getState());
+        log.debug("t6 state {}", t6.getState());
 
 
     }
-
-
-
-
 
 
 }

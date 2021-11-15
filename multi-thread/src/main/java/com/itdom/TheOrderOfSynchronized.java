@@ -15,6 +15,20 @@ public class TheOrderOfSynchronized {
 
 
     public static void main(String[] args) {
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        };
+        try {
+            new Thread(()->{});
+        } finally {
+
+        }
+
+
 //----------------使用wait和notify控制顺序输出---------------------------
 //        new Thread(() -> {
 //            synchronized (obj) {

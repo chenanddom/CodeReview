@@ -13,6 +13,19 @@
         <module>jvm-review</module>
         <module>multi-thread</module>
         <module>design-pattern</module>
+        <module>guava-learn</module>
     </modules>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>28.2-jre</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     
 </project>

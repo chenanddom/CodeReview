@@ -17,44 +17,45 @@ public class TwoPhaseTerminate {
         Thread t1 = new Thread(() -> {
             while (true) {
 
-                if (stop){
-                    log.debug("thread is ending...");
-                    break;
-                }
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
-
-//                Thread currentThread = Thread.currentThread();
-                //如果线程被打断了就推出，但是如果线程在睡眠状态下被打断，那么线程的打断标记会被清除
-//                if (currentThread.isInterrupted()) {
-//                    log.debug("线程后事处理....");
+//                if (stop){
+//                    log.debug("thread is ending...");
 //                    break;
 //                }
-
 //                try {
-                    //如果线程在睡眠状态下被打断，那么线程的打断标记会被清除
-//                    Thread.sleep(1000);
+//                    Thread.sleep(1000L);
 //                } catch (InterruptedException e) {
-                    //睡眠状态下的线程被打断，线程标记会被清除
-//                    currentThread.interrupt();
+//                    e.printStackTrace();
 //                }
+
+
+
+                Thread currentThread = Thread.currentThread();
+//                如果线程被打断了就推出，但是如果线程在睡眠状态下被打断，那么线程的打断标记会被清除
+                if (currentThread.isInterrupted()) {
+                    log.debug("线程后事处理...."+currentThread.isInterrupted());
+                    break;
+                }
+
+                try {
+//                    如果线程在睡眠状态下被打断，那么线程的打断标记会被清除
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    log.debug("睡眠的线程被打断...."+currentThread.isInterrupted());
+//                    睡眠状态下的线程被打断，线程标记会被清除
+                    currentThread.interrupt();//打断标记被清除，需要重新设置
+                }
 
 
             }
 
         }, "t1");
         t1.start();
-        log.debug("thread begin end....");
-        stop=true;
+//        log.debug("thread begin end....");
+//        stop=true;
 
-//        log.debug("线程开始打断....");
-//        Thread.sleep(1000L);
-//        t1.interrupt();
+        log.debug("线程开始打断....");
+        Thread.sleep(3500L);
+        t1.interrupt();
 
     }
 
