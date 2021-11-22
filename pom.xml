@@ -7,19 +7,16 @@
     <artifactId>CodeReview</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
     <modules>
         <module>distributed-transaction</module>
         <module>jvm-review</module>
         <module>multi-thread</module>
         <module>design-pattern</module>
         <module>guava-learn</module>
+        <module>jvm-review</module>
     </modules>
-
-
     <dependencyManagement>
         <dependencies>
-            <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -27,5 +24,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    
 </project>
