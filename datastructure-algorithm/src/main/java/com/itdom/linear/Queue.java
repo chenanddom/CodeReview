@@ -33,6 +33,7 @@ public class Queue<T> implements Iterable<T> {
     }
 
     public void enqueue(T t){
+        this.N++;
         if (this.last==null){
             Node newNode = new Node(t,null);
             head.next = newNode;
@@ -43,7 +44,6 @@ public class Queue<T> implements Iterable<T> {
         Node newNode = new Node(t,null);
         curr.next = newNode;
         this.last = newNode;
-        this.N++;
     }
 
     public T dequeue(){
