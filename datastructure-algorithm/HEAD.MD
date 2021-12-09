@@ -1,3 +1,4 @@
+[上一节(树)](./TREE.MD)
 # 堆
 * 定义
 ```text
@@ -95,6 +96,7 @@ public class HeapSort {
 }
 ```
 
+[下一节](./PRIORITY_QUEUE.MD)
 
 
 
