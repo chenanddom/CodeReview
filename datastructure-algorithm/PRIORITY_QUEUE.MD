@@ -32,6 +32,9 @@
 1.最小的元素放在数组的索引1处。
 2.每个结点的数据总是小于等于它的两个子结点的数据。
 ```
+[最小优先队列代码](./src\main\java\com\itdom\priorityqueue\MinPriorityQueue.java)
+
+
 
 
 
