@@ -34,6 +34,7 @@
 ```
 [最小优先队列代码](./src\main\java\com\itdom\priorityqueue\MinPriorityQueue.java)
 
+[下一节](./TREE_ADVANCED.MD)
 
 
 
