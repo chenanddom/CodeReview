@@ -41,21 +41,34 @@ public class BreadthFirstSearch {
      */
     private void dfs(Graph graph, int v) {
         //把当前的顶点v标记为已搜索
-        marked[v] = true;
+//        marked[v] = true;
         //把当前顶点v放入对抗i额中，等待搜索它的邻接表
-        waitSearch.enqueue(v);
+//        waitSearch.enqueue(v);
         //使用while循环从队列涨拿出待搜索的顶带你wait，进行搜索邻接表
+//        while (!waitSearch.isEmpty()) {
+//            Integer wait = waitSearch.dequeue();
+        //遍历wait顶点的邻接表,得到每一个顶点w
+//            Queue<Integer> adj = graph.adj(wait);
+//            for (Integer w : adj) {
+//                if (!marked[w]) {
+//                    dfs(graph, w);
+//                }
+//            }
+//        }
+//        count++;
+        marked[v] = true;
+        waitSearch.enqueue(v);
         while (!waitSearch.isEmpty()) {
             Integer wait = waitSearch.dequeue();
-            //遍历wait顶点的邻接表,得到每一个顶点w
             Queue<Integer> adj = graph.adj(wait);
             for (Integer w : adj) {
                 if (!marked[w]) {
-                    dfs(graph, w);
+                    marked[w] = true;
+                    waitSearch.enqueue(w);
+                    this.count++;
                 }
             }
         }
-        count++;
     }
 
 

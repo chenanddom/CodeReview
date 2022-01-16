@@ -15,6 +15,7 @@
         <module>guava-learn</module>
         <module>jvm-review</module>
         <module>framework-spring-boot</module>
+        <module>domain-driven-development</module>
     </modules>
     <dependencyManagement>
         <dependencies>
