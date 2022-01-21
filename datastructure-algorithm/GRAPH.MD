@@ -169,6 +169,159 @@ public class Graph {
 如果没有搜索，标记为false；
 
 
+* 深度优先搜索
+
+
+
+* 广度优先搜索
+
+
+
+
+
+# 图的进阶
+## 有向图的定义
+* 有向图是一副具有方向性的图，是由一组顶点和一组有方向的边组成的，每条方向的边都连着一对游学的顶点
+
+* 出度:
+由某个顶点指出的边的个数成为改顶点的出度
+
+* 入度
+指向某个顶点的边的个数成为该顶带你的入度
+
+* 有向路径
+由一些列的顶点组成，对于其中的每个顶点都存在一条有向边，从它指向序列的下一个顶点。
+
+* 有向环
+一条至少含有一条边，且起点和重点相同的有向路径。
+
+* 一副有向图中两个顶带你v和w可以存在以下的4中关系:
+1. 没有边相连
+2. 存在从v到w的边v->w
+3. 存在w到v的边w->v
+4. 既存在w到v的边，也存在v到w的边，，即双向连接。
+
+**有向图代码的实现:**
+```java
+package com.itdom.graph;
+
+import com.itdom.linear.Queue;
+
+/**
+ * 构造方法:
+ * Digraph(int V)：创建一个包含V个顶点但不包含边的有向图
+ * <p>
+ * 成员方法
+ * 1.public int V():获取图中顶点的数量
+ * 2.public int E():获取图中边的数量
+ * 3.public void addEdge(int v,int w):向有向图中添加一条边 v->w
+ * 4.public Queue adj(int v)：获取由v指出的边所连接的所有顶点
+ * 5.private Digraph reverse():该图的反向图
+ * 成员变量
+ * 1.private final int V: 记录顶点数量
+ * 2.private int E: 记录边数量
+ * 3.private Queue[] adj: 邻接表
+ */
+public class DiGraph {
+    /**
+     * 记录顶点的个数
+     */
+    private final int V;
+
+    /**
+     * 记录边的数量
+     */
+    private int E;
+
+    /**
+     * 邻接表
+     */
+    private Queue[] adj;
+
+    public DiGraph(int V) {
+        //舒适化顶点的个数
+        this.V = V;
+        //初始化边的条数
+        this.E = 0;
+        //初始化邻接表
+        this.adj = new Queue[V];
+        //初始化邻接表中的空队列
+        for (int i = 0; i < V; i++) {
+            adj[i] = new Queue<Integer>();
+        }
+    }
+
+    /**
+     * //获取顶点数目
+     *
+     * @return
+     */
+    public int V() {
+        return V;
+    }
+
+    /**
+     * 获取图中边的数量
+     *
+     * @return
+     */
+    public int E() {
+        return E;
+    }
+
+    /**
+     * 向有向图中添加一条边 v->w
+     *
+     * @param v
+     * @param w
+     */
+    public void addEdge(int v, int w) {
+        adj[v].enqueue(v);
+        this.E++;
+    }
+
+    /**
+     * 获取由v指出的边所连接的所有顶点
+     *
+     * @param v
+     * @return
+     */
+    public Queue<Integer> adj(int v) {
+        return adj[v];
+    }
+
+    /**
+     * 该图的反向图
+     */
+    private DiGraph reverse() {
+        //创建一个新的有向图
+        DiGraph rDiGraph = new DiGraph(V);
+        //遍历与v相关的顶点的邻接表
+        for (int v = 0; v < V; v++) {
+            for (Integer w : adj(v)) {
+                //添加邻接表的v顶点的边。
+                rDiGraph.addEdge(w, v);
+            }
+        }
+        return rDiGraph;
+    }
+}
+```
+### 检测有向图中的环
+```text
+
+在进行图的拓扑排序时，需要保证图中是没有环的
+
+```
+
+
+
+
+
+
+
+
+
 
 
 
