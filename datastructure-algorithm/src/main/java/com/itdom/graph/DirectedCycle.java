@@ -15,6 +15,7 @@ import com.itdom.linear.Queue;
  * 2.private boolean hasCycle: 记录图中是否有环
  * 3.private boolean[] onStack:索引代表顶点，使用栈的思想，记录当前顶点有没有已经处于正在
  * 搜索的有向路径上
+ *
  */
 public class DirectedCycle {
     /**
@@ -34,9 +35,9 @@ public class DirectedCycle {
         this.marked = new boolean[diGraph.V()];
         this.hasCycle = false;
         this.onStack = new boolean[diGraph.V()];
-        for (int i = 0; i < diGraph.V(); i++) {
-            if (!marked[i]) {
-                dfs(diGraph, i);
+        for (int v = 0; v < diGraph.V(); v++) {
+            if (!marked[v]) {
+                dfs(diGraph, v);
             }
         }
     }
@@ -61,6 +62,7 @@ public class DirectedCycle {
                 return;
             }
         }
+        //如果深度遍历完当前顶点的邻接表的所顶点都没有环，那么当见当前顶点出栈。
         onStack[v] = false;
     }
 

@@ -71,7 +71,7 @@ public class DiGraph {
      * @param w
      */
     public void addEdge(int v, int w) {
-        adj[v].enqueue(v);
+        adj[v].enqueue(w);
         this.E++;
     }
 
