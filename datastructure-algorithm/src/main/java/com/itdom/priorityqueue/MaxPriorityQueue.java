@@ -24,7 +24,9 @@ public class MaxPriorityQueue<T extends Comparable<T>> {
     private int N;
 
     public MaxPriorityQueue(int capacity) {
+        // 因为数组索引0处的是不使用的，索引会有一个位置是无法使用的，但是长度又需要这么长，所以需要在数组原来的长度的基础上加1
         items = (T[]) new Comparable[capacity + 1];
+        //初始化元素个数是0
         N = 0;
     }
 
