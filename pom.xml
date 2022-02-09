@@ -16,6 +16,7 @@
         <module>jvm-review</module>
         <module>framework-spring-boot</module>
         <module>domain-driven-development</module>
+        <module>database-mysql</module>
     </modules>
     <dependencyManagement>
         <dependencies>
