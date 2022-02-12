@@ -3,3 +3,5 @@
 /distributed-transaction/target/
 /jvm-review/target/
 /multi-thread/target/
+/long-connection-websocket/target/
+/.idea/
