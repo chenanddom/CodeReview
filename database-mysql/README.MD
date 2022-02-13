@@ -45,8 +45,8 @@ defaults-file="D:\ProgramFiles\mysql\MySQLServer5.7Data\my.ini" --skip-grant-tab
 7: 再次通过服务管理，打开mysql服务。 
 8: 即可用修改后的新密码登陆。
 ```
-
 ## SQL
+
 ### SQL的分类
 * DDL
 数据库定义语言:CREATE\ALTER\DROP\RENAME\TRUNCATE
@@ -67,7 +67,7 @@ defaults-file="D:\ProgramFiles\mysql\MySQLServer5.7Data\my.ini" --skip-grant-tab
     * 必须保证所有的(),单引号，双引号时城队结束的
     * 必须使用英文状态下的半角输入方式
     * 字符型和日期时间类型的树可以使用单引号('')表示
-    * 列的别名，进来使用双引号(""),而且不建议省略as
+    * 列的别名，尽量使用双引号(""),而且不建议省略as (这样做的好处是在列中如果存在空格等，也可以将含空格的一并算做别名，否则会报错)
 
 ### SQL 大小写规范
 * MySQL在windows环境下大小写不敏感
@@ -98,6 +98,70 @@ defaults-file="D:\ProgramFiles\mysql\MySQLServer5.7Data\my.ini" --skip-grant-tab
 ```text
 在命令行客户端登录mysql，使用source指令导入
 ```
+## 基本的SELECT语句
+### 去重
+```sql
+SELECT DISTINCT department_id FROM employees;
+-- DISTINCT 其实是对后面所有列名的组合进行去重，你能看到最后的结果是 74 条，因为这 74 个部
+-- 门id不同，都有 salary 这个属性值。如果你想要看都有哪些不同的部门（department_id），只需
+-- 要写DISTINCT department_id 即可，后面不需要再加其他的列名了。
+SELECT DISTINCT department_id,salary FROM employees;
+```
+![第一句sql去重前](./files\sql去重-1.PNG)
+![第一句sql去重后](./files\sql去重-2.PNG)
+
+![第二句sql去重前](./files\sql去重-3.PNG)
+![第二句sql去重后](./files\sql去重-4.PNG)
+
+
+### 控制运算处理
+```sql
+SELECT employee_id,salary,commission_pct,12*salary*(1+IFNULL(commission_pct,0)) "annual_sal" FROM employees;
+```
+![sql加ifnull()函数之前](./files\sql空值参与运算-1.PNG)
+![sql加ifnull()函数之后](./files\sql空值参与运算-2.PNG)
+
+### 着重号
+```sql
+出现表名或者字段名和关键字相同，则可以使用着重号标识，这样就可以避免执行sql报错
+```
+
+## 运算符
+
+### 比较运算符
+比较运算符用来对表达式左边的操作数和右边的操作数进行比较，比较的结果为真则返回1，比较的结果为假返回0，其他的情况则返回NULL
+比较运算符经常被用来作为SELECT查询语句的条件进行使用，发牛的符合条件的结果记录。
+* 等号运算符
+    * 等号运算符(=)判断两边的值，字符串或者表达式是否相等，如果相等则返回1，不相等返回0
+    * 在使用等号运算符是，遵循如下的原则
+        * 如果等号两边的值，字符串或者表达式都为字符串，则MySQL会按照字符串进行比较，其比较的是每个字符串中字符的ANSI编码是否相等
+        * 如果等号两边的值都是整数，则MySQL会按照整数来比较两个值的大小
+        * 如果等号两边的值ige是整数，另一个是字符串，那么MySQL会将字符串转化为数字进行比较s
+        * 如果等号两边的值，字符串或者表达式中有一个为NULL,则比较结果为NULL
+        
+```sql
+SELECT 1=1,1='1',1=0,'a'='a',(5+3)=(2+6),''=NULL,NULL=NULLFROM dual;
+```        
+SQL执行结果
+![等号运算符sql执行结果](./files\比较运算符-1.PNG)
+
+```sql
+# 字符串和数字互相转换，如果缓缓不成功就看作是0，此处的字符串abc是无法正常转换成ASIIC码的，所以默认返回0.
+SELECT 1=2,0='abc',1='abc'FROM DUAL;
+```
+SQL执行结果
+![等号运算符sql执行结果](./files\比较运算符-2.PNG)
+
+* 不等于运算符
+```sql
+SELECT 1<>1,1!=2,'a'!='b',(3+4)<>(2+6),'a'!=NULL,NULL<>NULL FROM DUAL;
+```
+![不等于运算符sql执行结果](./files\比较运算符-3.PNG)
+
+
+ 
+
+
 
 
 
