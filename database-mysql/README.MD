@@ -159,7 +159,45 @@ SELECT 1<>1,1!=2,'a'!='b',(3+4)<>(2+6),'a'!=NULL,NULL<>NULL FROM DUAL;
 ![不等于运算符sql执行结果](./files\比较运算符-3.PNG)
 
 
- 
+* 非符号运算符 LEAST(),GREATEST()
+这两个运算符主要是从列表中选出最小值和最大值，在列表中如果出现了NULL值，那么这个列表中的值是无法比较大小的，此时返回一个NULL值
+例子:
+```sql
+SELECT LEAST(1,2,4,5,6,7),LEAST('b','a','c'),LEAST(1,NULL,2) FROM DUAL
+```
+![运行结果](./files\比较运算符-4.PNG)
+
+```sql
+-- 最大值运算符
+SELECT GREATEST(1,2,5),GREATEST('D','A','F'),GREATEST(1,NULL,2) FROM DUAL;
+```
+![sql执行结果](./files\比较运算符-5.PNG)
+
+
+* 转义字符
+```sql
+-- ESCAPE 使用转义字符
+SELECT job_id FROM jobs where job_id LIKE 'IT\_%';
+-- 使用ESCAPE自定义转义字符
+SELECT job_id FROM jobs where job_id LIKE 'IT$_%' ESCAPE '$';
+```
+![sql执行结果](./files\比较运算符-6.PNG)
+
+
+
+## 多表查询
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
