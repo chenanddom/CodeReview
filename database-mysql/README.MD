@@ -184,8 +184,7 @@ SELECT job_id FROM jobs where job_id LIKE 'IT$_%' ESCAPE '$';
 ![sql执行结果](./files\比较运算符-6.PNG)
 
 
-
-## 多表查询
+[下一章(关联查询)](./ASSOCIATION_QUERY.MD)
 
 
 
