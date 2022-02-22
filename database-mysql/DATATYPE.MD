@@ -314,25 +314,116 @@ DATE（日期），以及 TIMESTAMP 类型，但是在实际项目中，尽量�
 
 
 
+## 文本字符串
+在实际的项目中，我们还经常遇到一种数据，就是字符串数据。
+MySQL中，文本字符串总体上分为CHAR 、VARCHAR 、TINYTEXT 、TEXT 、MEDIUMTEXT 、
+LONGTEXT 、ENUM 、SET 等类型。
+
+| 文本字符串类型|值长度|长度范围|占用的存储空间|
+| ---- | ---- | ---- | ---- |
+|CHAR(M)|M|0<=M<=255|M个字节|
+|VARCHAR(M)|M|0<=M<=65535|M+1字节(1个字节用来存储所占用的长度)|
+|TINYTEXT|L|0<=L<=255|L+2个字节|
+|TEXT|L|0<=L<=65535|L+2个字节|
+|MEDIUMTEXT|L|0<=L<=1677215|L+3个字节|
+|LONGTEXT|L|0<=L<=4294967295|L+4个字节|
+|ENUM|L|0<=L<=65535|1或2个字节|
+|SET|L|0<=L<=64|1,2,3,4或8个字节|
+
+*　CHAR和VARCHAR
+    *　CHAR(M)类型一般需要预先定义字符串长度。如果不指定长度，则默认长度是1个字符。
+    * 如果保存是，数据的实际长度比CHAR类型声明的长度小，则会在右侧填充空格以达到指定的长度，
+    当MySQL检索CHAR类型的数据时，CHAR类型的字段会去除尾部的空格。
+    *  定义CHAR类型字段时，声明的字段长度即为CHAR类型字段的所占的存储空间的字节数
+例子:
+```sql
+create table text_test1(
+c1 char,
+c2 char(5)
+);
+
+DESC text_test1;
+insert into text_test1 values('a','Tom');
+INSERT INTO text_test1(c1) VALUE('a  ')
+-- 插入超多指定宽度的字符，只取第一个字符
+insert into text_test1(c1) value('ab  ')
+select *from text_test1;
+```   
+
+![SQL执行结果](./files\数据类型-9.PNG)
+*
+    * VARCHAR类型
+        * VARCHAR(M) 定义时， 必须指定长度M，否则报错。
+        * MySQL4.0版本以下，varchar(20)：指的是20字节，如果存放UTF8汉字时，只能存6个（每个汉字3字
+          节）;MySQL5.0版本以上，varchar(20)：指的是20字符。
+        * 检索VARCHAR类型的字段数据时，会保留数据尾部的空格。VARCHAR类型的字段所占用的存储空间
+          为字符串实际长度加1个字节。
+          
+例子：
+```sql
+-- varchar类型最大可以存储21844个字符，定义21845报错，大于等于21846就自动转成mediumtext了
+
+CREATE TABLE if not exists text_test2(name varchar(5));
+desc text_test2; 
+insert into text_test2(name) values ('测试'),('多方位测试')
+insert into text_test2(name) values ('测试2'),('多方位测试2')
+INSERT INTO text_test2(NAME) VALUES ('测试3  '),('多方位测试3')
+select *from text_test2;
+
+```
+![sql执行结果](./files\数据类型-10.PNG)
+
+**使用场景**
+*
+    
+    * 情况1：存储很短的信息。比如门牌号码101，201……这样很短的信息应该用char，因为varchar还要占个
+    byte用于存储信息长度，本来打算节约存储的，结果得不偿失
+    
+    * 情况２：固定长度的。比如使用uuid作为主键，那用char应该更 合适。因为它固定长度，varchar动态
+    根据长度的特性就消失了，还需要记录长度信息占据存储。
+    
+    * 情况3：十分频繁改变的column。因为varchar每次存储都要有额外的计算，得到长度等工作，如果一个
+      非常频繁改变的，那就要有很多的精力用于计算，而这些对于char来说是不需要的。
+    
+    * 情况4：具体存储引擎中的情况：
+        *　MyISAM 数据存储引擎和数据列：MyISAM数据表，最好使用固定长度(CHAR)的数据列代替可变长
+           度(VARCHAR)的数据列。这样使得整个表静态化，从而使数据检索更快，用空间换时间。
+        *　MEMORY 存储引擎和数据列：MEMORY数据表目前都使用固定长度的数据行存储，因此无论使用
+           CHAR或VARCHAR列都没有关系，两者都是作为CHAR类型处理的。
+      　*　InnoDB 存储引擎，建议使用VARCHAR类型。因为对于InnoDB数据表，内部的行存储格式并没有区
+            分固定长度和可变长度列（所有数据行都使用指向数据列值的头指针），而且主要影响性能的因素
+            是数据行使用的存储总量，由于char平均占用的空间多于varchar，所以除了简短并且固定长度的，
+            其他考虑varchar。这样节省空间，对磁盘I/O和数据存储总量比较好  
 
 
+## TEXT类型
 
+*   在MySQL中，TEXT用来保存文本类型的字符串，总共包含4种类型，分别为TINYTEXT、TEXT、MEDIUMTEXT 和 LONGTEXT 类型。
 
+*   在TEXT类型的字段保存和查询数据时，系统自动按照实际长度存储，不需要预先定义长度。这一点和VARCHAR类型相同。
 
+*   由实际存储的长度不确定，MySQL 不允许 TEXT 类型的字段做主键。遇到这种情况，你只能采用CHAR(M)，或者 VARCHAR(M)。
 
+* **注意**　
+TEXT文本类型，可以存比较大的文本段，搜索速度稍慢，因此如果不是特别大的内容，建议使用CHAR，
+VARCHAR来代替。还有TEXT类型不用加默认值，加了也没用。而且text和blob类型的数据删除后容易导致
+“空洞”，使得文件碎片比较多，所以频繁使用的表不建议包含TEXT类型字段，建议单独分出去，单独用
+一个表。
 
+*　ENUM类型
 
+```sql
+CREATE TABLE enum_test1(season ENUM('春','夏','秋','冬','unknow'))
 
+DESC enum_test1;
 
+INSERT INTO enum_test1 VALUES ('春'),('秋'),('冬'),('unknow');
+-- Data truncated for column 'season' at row 1
+INSERT INTO enum_test1 VALUES('test')
 
-
-
-
-
-
-
-
-
+SELECT *FROM enum_test1;
+```
+![sql执行结果](./files\数据类型-11.PNG)
 
 
 
