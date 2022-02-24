@@ -1,5 +1,63 @@
 [上一章(数据类型)](./DATATYPE.MD)
-# 外键约束
+# 约束
+数据的完整性(data integrity)是值疏忽的精确性(Accuracy)和可靠性(Reliability)。它是防止数据库中存在不符合语义规定的数据和方式因为
+错误信息的输入输出造成无效操作或者错误信息二提出的。
+
+为了保证数据的完整性，SQL规范以约束的方式对表数据进行额外的条件限制。从下面四个方面考虑:
+* 实体完整性(Entity Integrity):一个表内不能存在两天完全相同的无法做出区分的数据记录
+* 域完整性(Domian Integrity):某些值的范围限定，如性别只能是“男/女”;
+*　引用完整性(Referential Integrity):从表引用主表的数据是必须存在的，否则这个数据就是脏数据
+*　用户自定义完整性(User-defined Integrity):用户可以定义自己设定的条件值。例如用户名唯一，密码不能为空等等。
+
+
+*   根据约束起的作用，约束可分为:
+
+    *   NOT NULL 非空约束，规定某个字段不能为空
+    *   UNIQUE 唯一约束，规定某个字段在整个表中是唯一的
+    *   PRIMARY KEY 主键(非空且唯一)约束
+    *   FOREIGN KEY 外键约束
+    *   CHECK 检查约束
+    *   DEFAULT 默认值约束
+
+## 唯一约束
+
+关键字:UNIQUE
+* 同一个表可以有多个唯一约束
+* 唯一约束可以是某一个列的值唯一，也可以多个列组合的值唯一
+* 唯一性约束允许列值为空
+* 在创建唯一约束的时候，如果不给唯一约束命名，就默认和列名相同
+* MySQL会给唯一约束的列上默认创建一个唯一索引
+
+例子:
+```sql
+CREATE TABLE IF NOT EXISTS student(
+sid INT PRIMARY KEY,
+student_name VARCHAR(32),
+tel_phone VARCHAR(32),
+CONSTRAINT student_uk_telphone UNIQUE(tel_phone)
+); 
+
+ALTER TABLE student ADD UNIQUE KEY(student_name,tel_phone); 
+
+DESC student;
+
+SHOW INDEX FROM student;
+```
+![查看表结构](./files\唯一索引-1.PNG)
+![查看表索引](./files\唯一索引-2.PNG)
+
+## CHECK约束
+CHECK的作用是检查某个字段的值是否符合要求，一般都是指值的范围
+
+* MySQL5.7可以使用check约束，但是check约束对数据验证没有任何作用。添加数据时，
+没有任何错误或者警告，但是MySQL8.0中可以使用CHECK约束。
+
+  
+
+
+
+
+## 外键约束
 
 外键约束的关键字是FOREIGN KEY
 

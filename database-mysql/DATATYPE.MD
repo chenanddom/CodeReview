@@ -426,7 +426,7 @@ SELECT *FROM enum_test1;
 ![sql执行结果](./files\数据类型-11.PNG)
 
 
-[下一章(外键约束)](./FOREIGN_KEY_CONSTRAINT.MD)
+[下一章(外键约束)](./CONSTRAINT.MD)
 
 
 
