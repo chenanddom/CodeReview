@@ -178,3 +178,5 @@ UPDATE dept SET dept_id=1004 WHERE dept_id=1003;
 ![dept原数据](./files\约束级别-2.PNG)
 ![dept更新后数据](./files\约束级别-3.PNG)
 ![emp3更新后数据](./files\约束级别-4.PNG)
+
+[下一章(视图)](./VIEW.MD)
