@@ -192,18 +192,108 @@ CALL different_salary(@emp_id,@diff_sal);
 SELECT @diff_sal;
 ```
 
+## 定义条件与处理程序
+
+定义条件时实现定义程序执行过程中可能遇到的问题，处理程序定义了在遇到问题时应当采取有的处理的方式，并且保证存储过程
+或者存储函数在遇到警告或者错误时继续执行。这样可以增强存储程序处理问题的能力，避免程序一层停止运行.
+
+说明：定义条件和处理程序在存储过程、存储函数中都是支持的。
+
+### 定义条件
+
+定义条件就是给MySQL中错误的代码命名，这有助于存储的程序代码更清晰。它将一个错误名字和指定错误条件关联起来，
+这个名字可以随后被用在定义存储程序的DECLARE HANDLER语句中。
+
+格式:
+```sql
+DECLARE 错误名称 CONDITION FOR  错误码(错误条件)
+```
+ 
+错误码说明
+
+* MySQL_error_code和sqlstate_value都可可以表示MySQL的错误。
+    * MySQL_error_code是数值类型错误代码。
+    * sqlstate_value是长度为5的字符串类型错误代码
+例子：
+```sql
+-- 执行插入语句，出错ERROR 1364 (HY000): Field 'email' doesn't have a default value
+INSERT INTO employees(last_name)VALUES('zhangsan')
+``` 
+执行上面的sql会出错，因为employees有些email字段是非空的，所以要插入空字段是不被允许的。
+上面的1364是MySQL_error_code, HY000是sqlstate_value  
+定义如下:              
+```sql
+DECLARE Field_Not_Be_NULL CONDITION FOR 1364;
+或者
+DECLARE Field_Not_Be_NULL CONDITION FOR SQLSTATE 'HY000'
+```
+
+### 定义处理程序
+```sql
+DECLARE 处理方式 HANDLER FOR  错误类型 处理语句;
+```
+* 处理方式 
+    * CONTINUE:表示晕倒错误不处理，继续执行
+    * EXIT:表示遇到错误马上退出
+    * UNDO:表示遇到错误后撤回之前的操作。MySQL中暂时不支持这样的操作
+    
+* 错误类型
+    * SQLSTATE '字符串错误码':表示长度的为5的sqlstate_value类型的错误代码
+    * MySQL_error_code:匹配数值类型错误代码
+    * 错误名称:表示DECLARE...CONDITION定义的错误条件名称.
+    * SQLWARNING:匹配所有的以01开头的SQLSTATE错误代码
+    * NOT FOUND:匹配所有以02开头的SQLSTATE错误代码
+    * SQLEXCEPTION:匹配所有没有被SQLWARNING或者NOT FOUND捕获的SQLSTATE错误代码
+* 处理语句：
+ 如果出现上述条件之一，则采用对应的处理方式，并执行指定的处理语句。语句可以是"SET 变量=值"这样的简单语句，也可以使用BEGIN...END编写复合语句
 
 
+例子
+```sql
+DECLARE CONTINUE HANDLER FOR SQLSTATE 'HY000' SET  @info='Field Not Be NULL'
+#方法1：捕获sqlstate_value
+DECLARE CONTINUE HANDLER FOR SQLSTATE '42S02' SET @info = 'NO_SUCH_TABLE';
+#方法2：捕获mysql_error_value
+DECLARE CONTINUE HANDLER FOR 1146 SET @info = 'NO_SUCH_TABLE';
+#方法3：先定义条件，再调用
+DECLARE no_such_table CONDITION FOR 1146;
+DECLARE CONTINUE HANDLER FOR NO_SUCH_TABLE SET @info = 'NO_SUCH_TABLE';
+#方法4：使用SQLWARNING
+DECLARE EXIT HANDLER FOR SQLWARNING SET @info = 'ERROR';
+#方法5：使用NOT FOUND
+DECLARE EXIT HANDLER FOR NOT FOUND SET @info = 'NO_SUCH_TABLE';
+#方法6：使用SQLEXCEPTION
+DECLARE EXIT HANDLER FOR SQLEXCEPTION SET @info = 'ERROR';
+```
 
 
+测试定义条件和处理程序的例子:
+```sql
+DELIMITER $
+CREATE PROCEDURE condition_test()
+BEGIN
+		DECLARE Field_Not_Be_NULL CONDITION FOR 1364;
+-- 		DECLARE CONTINUE HANDLER FOR Field_Not_Be_NULL SET @info='FIEL NOT BE NULL';
+		DECLARE EXIT HANDLER FOR Field_Not_Be_NULL SET @info='FIEL NOT BE NULL';
 
 
+		SET @T=1;
+		INSERT INTO employees(last_name)VALUES('zhangsan');
+		SET @T=2;
+		INSERT INTO employees(last_name)VALUES('lisi');
+		SET @T=3;
+		INSERT INTO employees(last_name)VALUES('wangwu');
+		SELECT @T,@info;
+END $
+DELIMITER ;
 
+DROP PROCEDURE IF EXISTS condition_test;
 
-
-
-
-
+CALL condition_test();
+```
+通过修改存储过程的条件和处理程序可以得到一下现象
+* 如果是CONTINUE，那么程序就会得到x=3和info=FIEL NOT BE NULL
+* 如果是EXIT程序就退出没有任何显示.
 
 
 
