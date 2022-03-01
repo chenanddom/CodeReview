@@ -339,21 +339,291 @@ SELECT  *FROM employees WHERE employee_id=104;
 
 
 ### 分支结构之 CASE
+语法结构
+```sql
+-- 类似与switch
+CASE 表达式
+WHEN 值1 THEN 结果1或语句1(如果是语句需要加分号)
+WHEN 值2 THEN 结果2或语句2(如果是语句需要加分号)
+...
+ELSE 结果N或语句N(如果是语句需要加分号)
+END [case](如果是放在begin end 中需要添加上case，如果是放在select 后面不需要)
+
+```
+```sql
+-- 类似与多重if
+CASE 
+WHEN 条件1 THEN 结果1或者语句1(如果是语句需要加分号)
+WHEN 条件2 THEN 结果2或者语句2(如果是语句需要加分号)
+...
+ELSE 结果N或语句N(如果是语句需要加分号)
+END [case](如果是放在begin end 中需要添加上case，如果是放在select 后面不需要)
+```
+例子:
+```sql
+-- 声明存储过程“update_salary_by_eid4”，定义IN参数emp_id，输入员工编号。判断该员工薪资如果低于9000元，就更新薪资为9000元；薪资大于等于9000元且低于10000的，但是奖金比例 为NULL的，就更新奖金比例为0.01；其他的涨薪100元。
+DELIMITER $
+CREATE PROCEDURE update_salary_by_eid4(IN emp_id INT)
+BEGIN
+		
+		DECLARE sal DOUBLE DEFAULT 0.0;
+		DECLARE bonus DECIMAL(3,2);
+		SELECT salary INTO sal FROM employees WHERE employee_id=emp_id;
+		SELECT commission_pct INTO bonus FROM employees WHERE employee_id = emp_id;
+		CASE
+	WHEN sal<9000 
+	THEN UPDATE employees SET salary = 9000 WHERE employee_id=emp_id;
+	WHEN sal <10000 AND bonus IS NULL 
+	THEN UPDATE employees SET commission_pct=0.01 WHERE employee_id = emp_id;
+	ELSE
+		UPDATE employees SET salary=salary+100 WHERE employee_id = emp_id;
+END CASE;
+
+END $
+
+DELIMITER ;
+
+
+DESC employees;
+
+SELECT *FROM employees;
+
+CALL update_salary_by_eid4(104);
+
+SELECT * FROM employees WHERE employee_id=104;
+
+
+CALL update_salary_by_eid4(109);
+
+SELECT * FROM employees WHERE employee_id=109;
+```
+![分支结构](./files\分支结构-3.PNG)
+![分支结构](./files\分支结构-4.PNG)
+
+![分支结构](./files\分支结构-5.PNG)
+![分支结构](./files\分支结构-6.PNG)
 
 ### 循环结构之LOOP
+LOOP循环语句用来重复执行某些语句。LOOP内的语句一直重复执行直到循环被退出(使用LEAVE子句)，跳出循环过程。
+格式:
+```sql
+loop_flag:LOOP
+    循环体...
+
+END LOOP [loop_label]
+```
+例子:
+```sql
+-- 当市场环境变好时，公司为了奖励大家，决定给大家涨工资。声明存储过程“update_salary_loop()”，声明OUT参数num，输出循环次数。存储过程中实现循环给大家涨薪，薪资涨为原来的1.1倍。直到全公司的平均薪资达到18000结束。并统计循环次数。
+
+DELIMITER $
+CREATE PROCEDURE update_salary_loop(OUT num INT)
+BEGIN
+	DECLARE loop_count INT DEFAULT 0;
+	DECLARE avg_sal DOUBLE DEFAULT 0.0;
+	
+	SELECT AVG(salary) INTO avg_sal FROM employees;
+	loop_flag:LOOP
+			IF avg_sal>=18000 THEN LEAVE loop_flag;
+			END IF;
+			UPDATE employees SET salary = salary*1.1;
+			SET loop_count = loop_count+1;
+			SELECT AVG(salary) INTO avg_sal FROM employees;
+
+			
+	END LOOP loop_flag;
+	
+	SET num = loop_count;
+END $
+
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS update_salary_loop;
+
+CALL update_salary_loop(@num);
+
+SELECT @num;
+```
+![loop执行结果](./files\分支结构-7.PNG)
+
+
 
 ### 循环结构之WHILE
+WHILE语句创建一个带条件判断的循环过程，WHILE在执行语句执行时，先对指定的表达式进行判断，如果为真，就执行循环内的语句，否则退出循环。WHILE
+格式:
+```sql
+[while_label:]WHILE 循环条件 DO
+循环体
+END WHILE [while_label];
+while_label为WHILE语句的标注名称；如果循环条件结果为真，WHILE语句内的语句或语句群被执行，直
+至循环条件为假，退出循环。
+```
+例子:
+```sql
+-- 市场环境不好时，公司为了渡过难关，决定暂时降低大家的薪资。声明存储过程“update_salary_while()”，声明OUT参数num，输出循环次数。存储过程中实现循环给大家降薪，薪资降为原来的90%。直到全公司的平均薪资达到5000结束。并统计循环次数。
 
+DELIMITER $
+CREATE PROCEDURE update_salary_while(OUT num INT)
+BEGIN
+
+	DECLARE avg_sal DOUBLE DEFAULT 0.0;
+	DECLARE while_count INT DEFAULT 0;
+	
+	SELECT AVG(salary) INTO avg_sal FROM employees;
+	label_while:WHILE avg_sal>5000 DO
+	UPDATE employees SET salary = salary*0.9;
+	SET while_count = while_count+1;
+	SELECT AVG(salary) INTO avg_sal FROM employees;
+	END WHILE label_while;
+	SET num = while_count;
+END $
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS update_salary_while;
+
+CALL update_salary_while(@num);
+
+SELECT @num;
+
+```
+![while循环执行结果](./files\分支结构-8.PNG)
 
 ### 循环结构之REPEAT
+REPEAT语句创建一个带条件判断的循环过程。与WHILE循环不同的是，REPEAT循环首先会执行一次循环，然后在UNTIL中进行条件表达式的判断，如果满足条件就退出
+即END REPEAT;如果条件不满足，则会继续执行循环，知道满足退出条件为止。
+REPEAT语句的基本格式如下:
+```sql
+[repeat_label:]REPEAT
+循环体
+...
+UNTIL 结束循环的条件表达式
+END REPEAT [repeat_label]
+repeat_label为REPEAT语句的标注名称，该参数可以省略；REPEAT语句内的语句或语句群被重复，直至
+expr_condition为真。
+```
+例子:
+```sql
+-- 当市场环境变好时，公司为了奖励大家，决定给大家涨工资。声明存储过程“update_salary_repeat()”，声明OUT参数num，输出循环次数。存储过程中实现循环给大家涨薪，薪资涨为原来的1.15倍。直到全公司的平均薪资达到13000结束。并统计循环次数。
+
+DELIMITER $
+CREATE PROCEDURE update_salary_repeat(OUT num INT)
+BEGIN
+	DECLARE
+		avg_sal DOUBLE DEFAULT 0.0;
+	DECLARE
+		repeat_count INT DEFAULT 0;
+	SELECT
+		AVG( salary ) INTO avg_sal 
+	FROM
+		employees;
+	repeat_label :
+	REPEAT
+			UPDATE employees 
+			SET salary = salary * 1.15;
+		
+		SET repeat_count = repeat_count + 1;
+			SELECT
+		AVG( salary ) INTO avg_sal 
+	FROM
+		employees;
+		UNTIL avg_sal >= 13000 
+	END REPEAT repeat_label;
+	
+	SET num = repeat_count;
+	
+END $
+$DELIMITER;
+
+DROP PROCEDURE IF EXISTS update_salary_repeat;
+
+CALL update_salary_repeat(@num);
+
+SELECT @num;
+```
+![repeat循环体执行结果](./files\分支结构-9.PNG)
 
 
 ### 跳转语句之LEAVE语句
+LEAVE语句：可以用在循环语句内，或者以 BEGIN 和 END 包裹起来的程序体内，表示跳出循环或者跳出
+程序体的操作。如果你有面向过程的编程语言的使用经验，你可以把 LEAVE 理解为 break。
+```sql
+LEAVE 标记名
+```
+例子:
+```sql
+-- 当市场环境变好时，公司为了奖励大家，决定给大家涨工资。声明存储过程“update_salary_loop()”，声明OUT参数num，输出循环次数。存储过程中实现循环给大家涨薪，薪资涨为原来的1.1倍。直到全公司的平均薪资达到18000结束。并统计循环次数。
+
+DELIMITER $
+CREATE PROCEDURE update_salary_loop(OUT num INT)
+BEGIN
+	DECLARE loop_count INT DEFAULT 0;
+	DECLARE avg_sal DOUBLE DEFAULT 0.0;
+	
+	SELECT AVG(salary) INTO avg_sal FROM employees;
+	loop_flag:LOOP
+			IF avg_sal>=18000 THEN LEAVE loop_flag;
+			END IF;
+			UPDATE employees SET salary = salary*1.1;
+			SET loop_count = loop_count+1;
+			SELECT AVG(salary) INTO avg_sal FROM employees;
+
+			
+	END LOOP loop_flag;
+	
+	SET num = loop_count;
+END $
+
+
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS update_salary_loop;
+
+CALL update_salary_loop(@num);
+
+SELECT @num;
+```
+![loop执行结果](./files\分支结构-7.PNG)
 
 
 ### 跳转语句之ITERATE语句
+ITERATE语句：只能用在循环语句（LOOP、REPEAT和WHILE语句）内，表示重新开始循环，将执行顺序
+转到语句段开头处。如果你有面向过程的编程语言的使用经验，你可以把 ITERATE 理解为 continue，意
+思为“再次循环”。
+```sql
+ITERATE label
+```
+例子:
+```sql
+
+DELIMITER //
+CREATE PROCEDURE iterate_test () BEGIN
+	DECLARE
+		num INT DEFAULT 0;
+	my_loop :
+	LOOP
+			
+			SET num = num + 1;
+		IF
+			num < 10 THEN ITERATE my_loop; ELSEIF num > 15 THEN
+			LEAVE my_loop;
+			
+		END IF;
+		SELECT
+			'test----';
+		
+	END LOOP my_loop;
+	
+END // 
+DELIMITER;
 
 
+
+DROP PROCEDURE IF EXISTS iterate_test;
+
+CALL iterate_test();
+```
+![iterate关键字跳转](./files\分支结构-10.PNG)
 
 
 
