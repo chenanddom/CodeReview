@@ -298,6 +298,44 @@ CALL condition_test();
 ## 流程控制
 
 ### 分支结构之 IF
+```sql
+IF 表达式1 THEN 操作1
+[ELSEIF 表达式2 THEN 操作2]
+[ELSE 操作N]
+END IF
+```
+例子：
+```sql
+-- 声明存储过程“update_salary_by_eid1”，定义IN参数emp_id，输入员工编号。判断该员工薪资如果低于8000元并且入职时间超过5年，就涨薪500元；否则就不变。
+DELIMITER $
+CREATE PROCEDURE update_salary_by_eid1(IN emp_id INT)
+BEGIN
+
+		DECLARE emp_sal DOUBLE DEFAULT 0.0;
+		DECLARE hire_year DOUBLE DEFAULT 0.0;
+		
+		SELECT salary INTO emp_sal FROM employees WHERE employee_id=emp_id;
+
+		SELECT DATEDIFF(CURDATE(),hire_date)/365  INTO hire_year FROM employees WHERE employee_id=emp_id;
+		
+		IF emp_sal<8000 AND hire_year>5
+		THEN UPDATE employees SET salary = salary+500 WHERE employee_id=emp_id;
+		END IF;
+END $
+
+DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS update_salary_by_eid1
+
+CALL update_salary_by_eid1(104);
+
+SELECT  *FROM employees WHERE employee_id=104;
+```
+![执行存储程序之前](./files\分支结构-1.PNG)
+![执行存储程序之后](./files\分支结构-2.PNG)
+
+
 
 
 ### 分支结构之 CASE
