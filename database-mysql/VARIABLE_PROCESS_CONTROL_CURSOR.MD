@@ -629,46 +629,92 @@ CALL iterate_test();
 
 
 
+## 游标
+
+虽然我们也可以通过筛选条件 WHERE 和 HAVING，或者是限定返回记录的关键字 LIMIT 返回一条记录，
+但是，却无法在结果集中像指针一样，向前定位一条记录、向后定位一条记录，或者是随意定位到某一
+条记录，并对记录的数据进行处理。
+这个时候，就可以用到游标。游标，提供了一种灵活的操作方式，让我们能够对结果集中的每一条记录
+进行定位，并对指向的记录中的数据进行操作的数据结构。游标让 SQL 这种面向集合的语言有了面向过
+程开发的能力
+在 SQL 中，游标是一种临时的数据库对象，可以指向存储在数据库表中的数据行指针。这里游标充当了
+指针的作用，我们可以通过操作游标来对数据行进行操作。
+
+* 使用游标的操作步骤
+     1. 声明游标
+    在MYSQL中，使用DECLARE关键字来声明游标,其语法的基本格式如下:
+     ```sql
+      DECLARE cursor_name CURSOR FOR select_statement;
+  
+      DECLARE cur_emp CURSOR FOR  SELECT employee_id,salary FROM employees;   
+  ```  
+    
+     2. 打开游标
+    ```sql
+      OPEN cursor_name
+    ```
+     3. 使用游标(从游标获取数据)
+    ```sql
+      -- 这句的作用是使用 cursor_name 这个游标来读取当前行，并且将数据保存到 var_name 这个变量中，游
+        标指针指到下一行。如果游标读取的数据行有多个列名，则在 INTO 关键字后面赋值给多个变量名即可
+      FETCH cursor_name INTO var_name [,var_name]...
+  
+    注意：游标的查询结果集中的字段数，必须跟 INTO 后面的变量数一致，否则，在存储过程执行的时  候，MySQL 会提示错误。
+   
+     ```
+    4. 关闭游标
+    ```sql
+      close cursor_name 
+      -- 有OPEN就会有CLOSE，也就是打开和关闭游标。当我们使用完游标后需要关闭掉该游标。因为游标会占用系统资源，如果不及时关闭，游标会一直保持到存储过程结束，影响系统运行的效率。而关闭游标的操作，会释放游标占用的系统资源。
+     ```
+    
+例子:
+```sql
+DELIMITER $
+CREATE PROCEDURE et_count_by_limit_total_salary(IN limit_total_salary DOUBLE,OUT total_count INT)
+BEGIN
+
+	DECLARE sum_salary DOUBLE DEFAULT 0;
+	DECLARE cursor_salary DOUBLE DEFAULT 0;
+	DECLARE emp_count INT DEFAULT 0;
+    -- 声明游标
+	DECLARE emp_cursor CURSOR FOR SELECT salary FROM employees ORDER BY salary DESC;
+    -- 打开游标
+	OPEN emp_cursor;
+	
+	REPEAT  
+        -- 从游标获取数据
+		FETCH emp_cursor INTO cursor_salary;
+		
+		SET sum_salary = sum_salary+cursor_salary;
+		SET emp_count=emp_count+1;
+		UNTIL sum_salary>=limit_total_salary
+	END REPEAT;
+	SET total_count=emp_count;
+    -- 关闭游标
+	CLOSE emp_cursor;
+
+END $
 
 
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS et_count_by_limit_total_salary;
 
 
+CALL et_count_by_limit_total_salary(200000,@total_count);
+SELECT @total_count;
 
 
+DECLARE cur_emp CURSOR FOR SELECT * FROM employees;
 
+```
+总结:
+ 游标是 MySQL 的一个重要的功能，为逐条读取结果集中的数据，提供了完美的解决方案。跟在应用层
+ 面实现相同的功能相比，游标可以在存储程序中使用，效率高，程序也更加简洁。
+ 但同时也会带来一些性能问题，比如在使用游标的过程中，会对数据行进行加锁，这样在业务并发量大
+ 的时候，不仅会影响业务之间的效率，还会消耗系统资源，造成内存不足，这是因为游标是在内存中进
+ 行的处理。
+ 建议：养成用完之后就关闭的习惯，这样才能提高系统的整体效率。   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[下一章(触发器)](./Trigger.MD)
