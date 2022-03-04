@@ -116,3 +116,9 @@ REVOKE 权限1，权限2...权限n ON 数据库.表名 RFOM 用户名@用户地�
 REVOKE UPDATE ON dbtest1.employees FROM 'chendom'@'%';
 ```
 ![回收权限后的效果](./files\权限-4.PNG)
+
+
+
+
+
+[下一章(逻辑架构)](./LOGIC_FRAMEWORK.MD)
