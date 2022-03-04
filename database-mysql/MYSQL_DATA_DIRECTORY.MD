@@ -1,4 +1,4 @@
-[](./)
+[上一章(触发器)](./Trigger.MD)
 
 # MySQL数据目录
 Linux上MySQL安装好之后默认的数据库目录如下:
@@ -50,3 +50,4 @@ Oracle官方将frm文件的信息及更多地下逆袭移动到了叫做序列�
     .MYD:数据文件
     
     .MYI:索引文件
+ [下一章(MySQL账户管理)](./ACCOUNT_MANAGEMENT.MD)
