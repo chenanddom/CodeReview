@@ -122,14 +122,15 @@ show profile for query id
 ```
 ![查看profile](./files\逻辑结构-6.png)
 
+## SQL语法的顺序
+![SQL语法的顺序](./files\逻辑结构-7.png)
 
 
 
 
 
 
-
-
+[下一章(存储引擎)](./STORAGE_ENGINE.MD)
 
 
 
