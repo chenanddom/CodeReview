@@ -158,7 +158,7 @@ Innodb支持自适应的hash索引，可以提高查询频繁查找的数据。�
 ```sql
 mysql> show variables like '%adaptive_hash_index';    
 ```
-
+[Innodb存储引擎的数据结构](./INNODB_DATA_STRUCTURE.MD)
 
 
 
