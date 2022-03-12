@@ -67,5 +67,27 @@ SHOW STATUS LIKE 'last_query_cost';
 1. 开启slow_query_log
 在使用前，我们需要先看下慢查询是否已经开启，使用下面这条命令即可:
 ```text
+-- 设置开启慢查询日志
+SET GLOBAL slow_query_log=on;
+-- 查看慢查询日志是否开启
 show variables like '%slow_query_log%'
+-- 查看慢查询的界定时长，默认时10s
+SET long_query_time=1;
 ```
+![查看慢查询日志是否开启](./files\性能分析-5.PNG)
+
+执行耗时SQL
+```sql
+-- 此句sql执行超过了1秒就记录进慢查询日志
+select *from student_info where name='%ILH' or name='%LJpx%' or name like '%add' or name like '%mm%' or name like '%000%' or name like '%%%%' or name like '%888888%';
+```
+![生成慢查询日志](./files\性能分析-6.PNG)
+![慢查询日志内容](./files\性能分析-7.PNG)
+
+* 分析慢查询日志
+在window平台需要安装perl语言的允许环境
+![性能分析语句](./files\性能分析-9.PNG)
+![新分析生成的文件](./files\性能分析-8.PNG)
+![新分析生成的文件的内容](./files\性能分析-10.PNG)
+
+
