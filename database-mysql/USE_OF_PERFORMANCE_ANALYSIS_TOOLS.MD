@@ -52,7 +52,7 @@ SHOW STATUS LIKE 'last_query_cost';
 从上面的sql的执行结果可以看到，第一个sql执行只是加载了1个页，第二个加载了20个页，相差了20倍，但是SQL执行的时间基本上时一样的，就是因为
 采用了顺序读取的方式将页面一次性加载到缓存池中，然后再进行查找，虽然页数量(last_query_cost)增加了不少，但是通过缓冲查集的机制，并没有
 增加多少查询时间。
-使用场景:它对于比较开销时非常有用的，特别时我们iyou好几种查询方式可选的时候。
+使用场景:它对于比较开销时非常有用的，特别是我们也有好几种查询方式可选的时候。
 ```text
 1. 位置决定效率。如果页就是再数据库缓冲池中的，那么效率时最高的，否则还需要从内存或者磁盘中进行读取，当然针对单个页来读取来说，如果页存在
 于内存中，会比在磁盘中读取效率高很多。
@@ -89,5 +89,84 @@ select *from student_info where name='%ILH' or name='%LJpx%' or name like '%add'
 ![性能分析语句](./files\性能分析-9.PNG)
 ![新分析生成的文件](./files\性能分析-8.PNG)
 ![新分析生成的文件的内容](./files\性能分析-10.PNG)
+
+* 删除慢查询日志
+    1. 可以直接删除文件
+    2. 删除文件后可以使用命令将文件复位：mysqladmin  -hlocalhost -uroot -P 3306 -proot@123 flush-logs slow
+
+
+* 关闭慢查询日志
+```sql
+SET slow_query_log=off;
+```
+
+
+
+### 查看 SQL 执行成本：SHOW PROFILE
+```sql
+-- 开启profile
+SET GLOBAL profiling=1;
+SET profiling=ON;
+-- 查看profile
+SHOW profiles;
+-- 查看具体的查询的消耗
+show profile for query QUERY_ID
+```
+![show profile查看查询的消耗](./files\性能分析-11.PNG)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
