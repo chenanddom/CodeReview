@@ -114,10 +114,175 @@ show profile for query QUERY_ID
 ```
 ![show profile查看查询的消耗](./files\性能分析-11.PNG)
 
+① ALL：显示所有的开销信息。
+② BLOCK IO：显示块IO开销。 
+③ CONTEXT SWITCHES：上下文切换开销。 
+④ CPU：显示CPU开销信息。 
+⑤ IPC：显示发送和接收开销信息。 
+⑥ MEMORY：显示内存开销信息。 
+⑦ PAGE FAULTS：显示页面错误开销信息。 
+⑧ SOURCE：显示和Source_function，Source_file，Source_line相关的开销信息。 
+⑨ SWAPS：显示交换次数开销信息。
+
+## EXPLAIN 分析慢查询的饿sql
+定位了慢查询的SQL之后，我们就可以使用EXPLAIN或者DESCRIBE工具做针对性的分析查询语句。DESCRIBE语句的使用方法与EXPLAIN语句是一样的，并且分析结果也是一样的。
+MySQL中有专门负责优化SELECT语句的的优化器模块，主要的功能：通过计算分析系统中收集到的统计信息，为客户端请求的Query提供它认位最有的执行
+计划(它认位最有的数据检索方式，但不见得是DBA认位是最优的，这部分最耗时)。
+这个执行计划展示了接下来具体执行查询的方式，比如多表连接的顺序是什么，对于每个表采用什么访问方法来具体执行查询等待。MySQL为我们提供了EXPLAIN
+语句来帮助我们查看某个查询语句的具体执行计划，大家看懂EXPLAIN语句的各个输出项，可以有针对性的提升我们查询语句的性能.
+
+EXPLAIN输出的信息
+
+|**列名**|**描述**|
+| ---- | ---- |
+|id|在一个大的查询语句中每个SELECT关键字对应一个唯一的id|
+|select_type|SELECT关键字对应的那个查询的类型|
+|table|表名|
+|partitions|匹配的分区信息|
+|type|针对单表的访问方法|
+|possible_keys|可能用到的索引|
+|key|实际上使用的索引|
+|key_len|实际上使用的到索引长度|
+|ref|当使用索引列值查询时，与索引列进行等值皮欸的信息|
+|rows|预估的需要读取的记录条数|
+|filtered|某个表经过搜索条件过滤后剩余的条数的百分比|
+|Extra|一些额外的信息|
+准备数据：
+```sql
+CALL insert_s1(10001,10000);
+
+CALL insert_s2(10001,10000);
+
+SELECT @@log_bin_trust_function_creators;
+
+set global log_bin_trust_function_creators=1;
+
+DELIMITER //
+CREATE PROCEDURE insert_s2 (IN min_num INT (10),IN max_num INT (10))
+BEGIN
+DECLARE i INT DEFAULT 0;
+SET autocommit = 0;
+REPEAT
+SET i = i + 1;
+INSERT INTO s2 VALUES(
+(min_num + i),
+rand_string1(6),
+(min_num + 30 * i + 5),
+rand_string1(6),
+rand_string1(10),
+rand_string1(5),
+rand_string1(10),
+rand_string1(10));
+UNTIL i = max_num
+END REPEAT;
+COMMIT;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION rand_string1(n INT)
+RETURNS VARCHAR(255) #该函数会返回一个字符串
+BEGIN
+DECLARE chars_str VARCHAR(100) DEFAULT
+'abcdefghijklmnopqrstuvwxyzABCDEFJHIJKLMNOPQRSTUVWXYZ';
+DECLARE return_str VARCHAR(255) DEFAULT '';
+DECLARE i INT DEFAULT 0;
+WHILE i < n DO
+SET return_str =CONCAT(return_str,SUBSTRING(chars_str,FLOOR(1+RAND()*52),1));
+SET i = i + 1;
+END WHILE;
+RETURN return_str;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE insert_s1 (IN min_num INT (10),IN max_num INT (10))
+BEGIN
+DECLARE i INT DEFAULT 0;
+SET autocommit = 0;
+REPEAT
+SET i = i + 1;
+INSERT INTO s1 VALUES(
+(min_num + i),
+rand_string1(6),
+(min_num + 30 * i + 5),
+rand_string1(6),
+rand_string1(10),
+rand_string1(5),
+rand_string1(10),
+rand_string1(10));
+UNTIL i = max_num
+END REPEAT;
+COMMIT;
+END //
+DELIMITER ;
 
 
 
 
+CREATE TABLE s1 (
+id INT AUTO_INCREMENT,
+key1 VARCHAR(100),
+key2 INT,
+key3 VARCHAR(100),
+key_part1 VARCHAR(100),
+key_part2 VARCHAR(100),
+key_part3 VARCHAR(100),
+common_field VARCHAR(100),
+PRIMARY KEY (id),
+INDEX idx_key1 (key1),
+UNIQUE INDEX idx_key2 (key2),
+INDEX idx_key3 (key3),
+INDEX idx_key_part(key_part1, key_part2, key_part3)
+) ENGINE=INNODB CHARSET=utf8;
+
+
+CREATE TABLE s2 (
+id INT AUTO_INCREMENT,
+key1 VARCHAR(100),
+key2 INT,
+key3 VARCHAR(100),
+key_part1 VARCHAR(100),
+key_part2 VARCHAR(100),
+key_part3 VARCHAR(100),
+common_field VARCHAR(100),
+PRIMARY KEY (id),
+INDEX idx_key1 (key1),
+UNIQUE INDEX idx_key2 (key2),
+INDEX idx_key3 (key3),
+INDEX idx_key_part(key_part1, key_part2, key_part3)
+) ENGINE=INNODB CHARSET=utf8;
+
+```
+
+
+
+```sql
+-- table:表名
+-- 查询的每一行都记录对应着一个单表
+EXPLAIN SELECT *FROM s1;
+-- s1时驱动表，s2：被驱动表
+EXPLAIN SELECT * FROM s1 INNER JOIN s2;
+-- id：在一个大的查询语句中每个SELECT关键字都对应一个唯一的id
+EXPLAIN SELECT * FROM s1 WHERE key1 = 'a';
+```
+* 优化器将子查询优化称多表查询 id都是一样的
+![优化器将子查询优化称多表查询](./files\性能分析-13.PNG)
+![优化器将子查询变成多表连接查询](./files\性能分析-14.PNG)
+* 存在子查询的情况
+![存在子查询的情况](./files\性能分析-12.PNG)
+
+*　UNION去重使用临时表
+![UNION去重使用临时表](./files\性能分析-15.PNG)
+
+
+小结：
+1. id如果相同，可以认位是一组，从上往下顺序执行
+2. 在所有组中，id值越大，优先级越高，越先执行。
+3. 关注点:id号每个号码，表示一趟独立的查询，一个sql的查询趟数越小越好。
+
+### Select_type
 
 
 
