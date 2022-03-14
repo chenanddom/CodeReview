@@ -284,54 +284,212 @@ EXPLAIN SELECT * FROM s1 WHERE key1 = 'a';
 
 ### Select_type
 
+|名称描述|描述|
+| ---- | ----- |
+|SIMPLE|表示不需要union操作或者不包含子查询的简单select查询。有连接查询时，外层的查询为simple，且只有一个|
+|PRIMARY|一个需要union操作或者含有子查询的select，位于最外层的单位查询的select_type即为primary。且只有一个|
+|UNION|union连接的两个select查询，第一个查询是PRIMARY，除了第一个表外，第二个以后的表select_type都是union|
+|UNION RESULT|两个查询UNION后的结果进行取并集|
+|SUBQUERY|存在子查询并且优化器优化后还是子查询的情况|
+|DEPENDENT UNION|与union一样，出现在union 或union all语句中，但是这个查询要受到外部查询的影响|
+|DERIVED|出现子查询，并将子查询的结果作为新表，在新表的基础上做条件查询|
+|MATERIALIZED|物化子查询|
+|UNCACHEABLE SUBQUERY|一个子查询，其结果无法缓存，必须为外部查询的每一行重新计算|
+|UNCACHEABLE UNION||
+
+
+
+*　SIMPLE
+![SIMPLE](./files\性能分析-16.PNG)
+
+*　PRIMARY
+一个需要union操作或者含有子查询的select，位于最外层的单位查询的select_type即为primary。且只有一个
+![PRIMARY](./files\性能分析-17.PNG)
+
+*　UNION
+union连接的两个select查询，第一个查询是PRIMARY，除了第一个表外，第二个以后的表select_type都是union
+![UNION](./files\性能分析-18.PNG)
+
+*　UNION RESULT
+union连接的两个select查询，第一个查询是PRIMARY，除了第一个表外，第二个以后的表select_type都是union
+![UNION RESULT](./files\性能分析-18.PNG)
+
+* SUBQUERY
+除了from字句中包含的子查询外，其他地方出现的子查询都可能是subquery
+![SUBQUERY](./files\性能分析-19.PNG)
+
+*　DEPENDENT　SUBQUERY
+与dependent union类似，表示这个subquery的查询要受到外部表查询的影响
+[DEPENDENT　SUBQUERY](./files\性能分析-20.PNG)
+
+
+* DENPENDENT UNION
+与union一样，出现在union 或union all语句中，但是这个查询要受到外部查询的影响
+union result
+包含union的结果集，在union和union all语句中,因为它不需要参与查询，所以id字段为null
+![DENPENDENT UNION](./files\性能分析-21.PNG)
+
+
+* DERIVED
+出现子查询，并将子查询的结果作为新表，在新表的基础上做条件查询
+![DERIVED](./files\性能分析-22.PNG)
 
 
 
 
+* MATERIALIZED
+MATERIALIZED 物化子查询可以当作做成一个临时表，比如，下面 in 后面括号里面的查询
+
+![MATERIALIZED](./files\性能分析-23.PNG)
+
+
+### partitions
+分区
+例子：
+```sql
+-- 创建分区表，
+-- 按照id分区，id<100 p0分区，其他p1分区
+CREATE TABLE user_partitions (id INT auto_increment,
+NAME VARCHAR(12),PRIMARY KEY(id))
+PARTITION BY RANGE(id)(
+PARTITION p0 VALUES less than(100),
+PARTITION p1 VALUES less than MAXVALUE
+);
+DESC SELECT * FROM user_partitions WHERE id>200;
+```
+![分区](./files\性能分析-24.PNG)
+
+### type针对单表的访问方法
+访问的方法有如下:
+**system、const、req_ref、ref、fulltext、req_or_null、index_merge、
+unique_subquery、index_subquery、range、index、index、ALL、**
+
+
+* system 
+当表中`只有一条记录`并且该表使用的存储引擎的统计数据是精确的，比如MyISAM、Memory，
+那么对该表的访问方法就是`system`。
+```sql
+CREATE TBALE t1(a int);
+ALTER TABLE t1 ENGINE=MyISAM
+INSERT INTO t1(a) values(1);
+EXPLAIN SELECT *FROM t1;
+```
+[system访问方法](./files\性能分析-25.PNG)
+
+* const
+当我们根据主键或者唯一二级索引列与常数进行等值匹配时，对单表的访问方法就是`const`
+```sql
+EXPLAIN SELECT *FROM s1 WHERE id=10260
+```
+![const访问方法](./files\性能分析-26.PNG)
+
+*　req_ref
+在连接查询是，如果被驱动表是通过主键或者唯一二级索引列等值匹配的方式进行访问的(如果该主键或者唯一二级所i你是联合索引的话，所有的索引列都
+必须进行等值比较)，则对该被驱动表的访问方法就是eq_ref
+```sql
+EXPLAIN SELECT *FROM s1 INNER JOIN s2 ON s1.id=s2.id;
+```
+![eq_ref访问方法](./files\性能分析-27.PNG)
+
+*　ref
+当通过二级索引与常量进行等值匹配时查询某个表，那么该表的访问方法就是ref
+![ref 访问方法](./files\性能分析-28.PNG)
+
+* fulltext
+全文索引
+```sql
+create table article(id int primary key auto_increment,authors varchar(32) not null,content text);
+insert into article(authors,content) values('zhangsan','文章1'),('lisi','文章2'),('wangwu','文章3');
+insert into article(authors,content) values('zhangsan','this is content'),('lisi','what fuck'),('wangwu','just test');
+alter table article add fulltext index idx_ft_content(content);
+EXPLAIN SELECT *FROM article WHERE MATCH(content) AGAINST('test' IN BOOLEAN MODE);
+```
+![fulltext访问方法](./files\性能分析-29.PNG)
+
+* req_or_null
+当对普二级索引进行等值匹配拆线呢，该索引列的值页可以时NULL值，那么对该表的访问方法就可能时'ref_or_null'
+```sql
+EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key1 IS NULL;
+```
+![ref_or_null访问方法](./files\性能分析-30.PNG)
+
+
+* index_merge
+我们的 where 中可能有多个条件(或者join)涉及到多个字段，它们之间进行 AND 或者 OR，那么此时就有可能会使用到 index merge 技术。
+index merge 技术如果简单的说，其实就是：对多个索引分别进行条件扫描，然后将它们各自的结果进行合并(intersect/union)。MySQL5.0之前，
+一个表一次只能使用一个索引，无法同时使用多个索引分别进行条件扫描。但是从5.1开始，引入了 index merge 优化技术，对同一个表可以使用多个
+索引分别进行条件扫描。
+```sql
+EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key2='b'
+```
+![index_merge访问方法](./files\性能分析-31.PNG)
+
+
+*　unique subquery
+这个访问方法时针对在一些包含IN子查询的查询语句中，如果查询优化器决定将IN子查询转换为EXISTS
+子查询，而且子拆线呢可以使用到主键进行等值匹配的话，那么该子查询执行计划的type的列值就时unique subquery
+```sql
+EXPLAIN SELECT *FROM s1 WHERE key2 IN (SELECT id FROM s2 WHERE s1.key1=s2.key1) OR key2='a';
+```
+![unique subquery访问方法](./files\性能分析-32.PNG)
+
+
+*　index_subquery
+此联接类型类似于unique_子查询。它替换子查询中的索引，但它适用于以下形式的子查询中的非唯一索引：
+```sql
+value IN (SELECT key_column FROM single_table WHERE some_expr)
+```
+*　range
+如果使用索引获取某些`范围区间`的记录，那么就可能使用到`range`访问方法
+```sql
+EXPLAIN SELECT * FROM s1 WHERE key1 IN ('a', 'b', 'c');
+EXPLAIN SELECT * FROM s1 WHERE key1 > 'a' AND key1 < 'b';
+```
+![range访问方法](./files\性能分析-33.PNG)
+
+
+*　INDEX
+当我们可以使用索引覆盖，但是需要扫面全部的索引记录时，该表的访问方法就是index，就是不需要回表。
+```sql
+explain select key_part1, key_part2 from s1 where key_part3='a';
+```
+![index访问方法](./files\性能分析-34.PNG)
 
 
 
+* ALL
+全表搜索
+```sql
+ explain select *from s1;
+```
+![All访问方法](./files\性能分析-35.PNG)
+
+结论：
+结果值最好到最坏的顺序依次时:system>const>eq_ref>ref>fulltext>ref_or_null>index_merge>unique_subquery>index_subquery>range>index>ALL
+其中比较重要的几个提取出来（见上图中的蓝色）。SQL 性能优化的目标：至少要达到 range 级别，要求是 ref 级别，最好是 consts级别。（阿里巴巴
+开发手册要求）
+
+### possible_keys和key
+表示的是可能使用到的索引和实际上使用到的索引
+```sql
+EXPLAIN SELECT * FROM s1 WHERE key1 > 'z' AND key3 = 'a';
+```
+![可能使用到的索引和实际使用到的索引](./files\性能分析-36.PNG)
 
 
 
+### key_len
+实际使用到的索引长度(即：字节数)帮你检查`是否充分的利用上了索引`，`值越大越好`,主要针对于联合索引，有一定的参考意义。
+**注意:utf-8使用3个字节表示一个字符.**
 
+![整型的key_len占4个字节](./files\性能分析-37.PNG)
 
+允许为空的字段需要占据一个字节
 
+![允许为空的字段需要占据一个字节](./files\性能分析-38.PNG)
 
+UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1个字节表示空值
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1个字节表示空值](./files\性能分析-39.PNG)
 
 
