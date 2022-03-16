@@ -507,13 +507,93 @@ UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1
 ![filtered](./files\性能分析-42.PNG)
 
 ### Extra
-些额外的信息,更准确的理解MySQL到底将如何执行给定的查询语句
+一些额外的信息,更准确的理解MySQL到底将如何执行给定的查询语句
 
 
+* Impossible WHERE
+
+查询语句的`WHERE`子句永远为`FALSE`时将会提示该额外信息
+![Impossible WHERE](./files\性能分析-43.PNG)
 
 
+* Using where
+当我们使用全表扫描来执行对某个表的查询，并且该语句的`WHERE`子句中有针对该表的搜索条件时，在`Extra`列中会提示上述额外信息
+![Using where](./files\性能分析-44.PNG)
+
+* No matching min/max row
+```sql
+EXPLAIN SELECT MIN(key1) FROM s1 WHERE key1='adjask';
+```
+![No matching min/max row](./files\性能分析-45.PNG)
 
 
+* Using index
+当我们的查询列表以及搜索条件中只包含属于某个索引的列，也就是在可以使用覆盖索引的情况下，在`Extra`列将会提示该额外信息。比方说下边这个查
+询中只需要用到`idx_key1`而不需要回表操作：
+```sql
+EXPLAIN SELECT key1 FROM s1 WHERE key1='a';
+```
+![Using index](./files\性能分析-46.PNG)
+
+* Using index condtion
+有些搜索条件中虽然出现了索引列，但却不能使用到索引看课件理解索引条件下推
+```sql
+EXPLAIN SELECT * FROM s1 WHERE key1 >'z' AND key1 LIKE '%a';
+```
+![Using index condition](./files\性能分析-47.PNG)
+
+* Using join buffer (hash join)/Using join buffer (Block Nested Loop)
+在连接查询执行过程中，当被驱动表不能有效的利用索引加快访问速度，MySQL一般会为其分配一块名叫`join buffer`的内存块来加快查询速度，
+也就是我们所讲的`基于块的嵌套循环算法`
+```sql
+ EXPLAIN SELECT * FROM s1 JOIN s2 ON s1.common_field=s2.common_field;
+```
+![Using join buffer (hash join)/Using join buffer (Block Nested Loop)](./files\性能分析-48.PNG)
+
+* Not exists
+在连接查询执行过程中，当被驱动表不能有效的利用索引加快访问速度，MySQL一般会为其分配一块名叫`join buffer`的内存块来加快查询速度，
+也就是我们所讲的`基于块的嵌套循环算法`
+```sql
+EXPLAIN SELECT *FROM s1 LEFT JOIN s2 ON s1.key1 WHERE s2.id IS NULL;
+```
+![Not exists](./files\性能分析-49.PNG)
+
+* Using interesect(...),Using union(...)和Using sort_union(...)
+如果执行计划的`Extra`列出现了`Using intersect(...)`提示，说明准备使用`Intersect`索引
+合并的方式执行查询，括号中的`...`表示需要进行索引合并的索引名称；
+如果出现了`Using union(...)`提示，说明准备使用`Union`索引合并的方式执行查询；
+出现了`Using sort_union(...)`提示，说明准备使用`Sort-Union`索引合并的方式执行查询。
+````sql
+EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key3='a';
+````
+![Using interesect(...),Using union(...)和Using sort_union(...)](./files\性能分析-50.PNG)
+
+* Zero limit
+当我们的`LIMIT`子句的参数为`0`时，表示压根儿不打算从表中读出任何记录，将会提示该额外信息
+```sql
+EXPLAIN SELECT * FROM s1 LIMIT 0;
+```
+![Zero limit](./files\性能分析-51.PNG)
+
+* Using filesort
+很多情况下排序操作无法使用到索引，只能在内存中（记录较少的时候）或者磁盘中（记录较多的时候）
+进行排序，MySQL把这种在内存中或者磁盘上进行排序的方式统称为文件排序（英文名：`filesort`）。 
+如果某个查询需要使用文件排序的方式执行查询，就会在执行计划的`Extra`列中显示`Using filesort`提示
+```sql
+ EXPLAIN SELECT * FROM s1 ORDER BY key1;
+```
+![Using filesort](./files\性能分析-52.PNG)
+
+
+*　Using temporary
+在许多查询的执行过程中，MySQL可能会借助临时表来完成一些功能，比如去重、排序之类的，比如我们
+在执行许多包含`DISTINCT`、`GROUP BY`、`UNION`等子句的查询过程中，如果不能有效利用索引来完成
+查询，MySQL很有可能寻求通过建立内部的临时表来执行查询。如果查询中使用到了内部的临时表，在执行
+计划的`Extra`列将会显示`Using temporary`提示
+```sql
+EXPLAIN SELECT DISTINCT common_field FROM s1;
+```
+![Using temporary](./files\性能分析-53.PNG)
 [下一章(索引优化和查询优化)](./QUERY_OPTIMIZATION_INDEX_OPTIMIZATION.MD)
 
 
