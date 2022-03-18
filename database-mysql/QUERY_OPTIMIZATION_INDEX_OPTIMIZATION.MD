@@ -867,10 +867,28 @@ mysql> EXPLAIN SELECT id,age,name FROM student WHERE name LIKE '%abc%';
         
         
 ## 索引下推
+Index Condition Pushdown(ICP)是MySQL 5.6中新特性，是一种在存储引擎层使用索引过滤数据的一种优化方式。ICP可以减少存储引擎访问基表的
+次数以及MySQL服务器访问存储引擎的次数。
+使用索引下推的查询语句在EXPLAIN时，Extra会显示Using index condition
+例子:
+```sql
+-- 虽然在key1 like '%abc%'处无法使用索引了，但是仍然可以使用它进行条件过滤，筛选处更少的结果集，然后再回表查找，减少IO。
+EXPLAIN SELECT *FROM s1 WHERE key1>'z' AND key1 LIKE '%abc%';
+```
 
 
+* ICP的开启和关闭
+默认情况下启用索引条件下推。可以通过设置系统遍历optimizer_switch控制：index_condition_pushdown
+```sql
+show variables like '%optimizer_switch%';
+-- 打开索引下推
+set optimizer_switch='index_condition_pushdown=on';
+-- 关闭索引下推
+set optimizer_switch='index_condition_push=off';
+EXPLAIN SELECT *FROM s1 WHERE key1>'z' AND key1 LIKE '%zhsa%';
 
-
+```
+![ICP的开启和关闭](./files\索引优化-查询优化-15.PNG)
 
 
 
