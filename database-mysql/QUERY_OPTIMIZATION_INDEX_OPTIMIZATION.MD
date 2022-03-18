@@ -736,6 +736,7 @@ buffer中，然后全表扫描被驱动表，被驱动表的每一条记录一�
 
 ## 排序优化
 
+### ORDER BY
 1. 在SQL中，可以在WHERE子句和ORDER BY 子句中使用索引，目的是在WHERE子句中避免全表扫描，在ORDER BY子句避免使用FileSort排序。当然，
 某些情况下，全表扫描或者FileSort排序不一定比索引慢。但总的来说，我们要避免，以提高查询效率。
 2. 尽量使用Index完成ORDER BY排序。如果WHERE 和ORDER BY后面是相同的列就使用单索引列；
@@ -796,4 +797,92 @@ mysql> SHOW VARIABLES LIKE '%max_length_for_sort_data%';
     算法----多路排序
     *　两种算法的数据都有可能超出sort_buffer_size的容量，超出之后，会创建tmp文件进行综合排序，导致多次I/O，但是用单路跑徐算法的风邪会更大
     ，索引要提高sort_buffer_size.
+
+
+### GROUP BY 优化
+* group by 使用索引的原则几乎跟order by一致，group by及时没有过滤条件用到索引，页可以直接使用索引。
+
+* group by 先排序在分组，遵照索引建的最佳左前缀法。
+
+* 当无法使用索引，增大max_length_for_sort_data和sort_buffer_size参数的设置
+
+* WHERE效率高于having,能写在WHERE限定的条件就不要写在having中。
+
+* 减少使用order by,和业务沟通，能不排序就不排序，或将偶爱徐放到程序端取做。order by、group by、disinct这些语句较为耗费CPU，数据库的
+CPU资源是极其宝贵的。
+
+* 包含了order by、group by,distict这些查询的语句，WHERE条件过滤出来的结果集请保持在1000以内，否则SQL会很慢.
+
+
+### 优化分页查询
+思路1:在索引上完成排序分页操作，最后根据主键挂变脸会原表查询所需要的其他列的内容
+```sql
+`SELECT *FROM student s,(SELECT id FROM student ORDER BY id LIMIT 200000,10)a WHERE t.id = a.id;
+```
+![根据主键排序好然后在联合查询](./files\索引优化-查询优化-12.PNG)
+
+优化思路2:
+    该方案适用于主键自增的表，可以把Limit查询转换成某个位置的查询。
+```sql
+SELECT *FROM student WHERE id>200000 LIMIT 10;
+```
+![根据自增主键id进行查找](./files\索引优化-查询优化-13.PNG)
+
+
+## 覆盖索引
+1. 覆盖索引的理解:
+理解方式一：索引是高效找到行的一个方法，但是一般数据库也能使用索引找到一个列的数据，因此它
+不必读取整个行。毕竟索引叶子节点存储了它们索引的数据；当能通过读取索引就可以得到想要的数
+据，那就不需要读取行了。一个索引包含了满足查询结果的数据就叫做覆盖索引。
+理解方式二：非聚簇复合索引的一种形式，它包括在查询里的SELECT、JOIN和WHERE子句用到的所有列
+（即建索引的字段正好是覆盖查询条件中所涉及的字段）。
+简单说就是， 索引列+主键 包含 SELECT 到 FROM之间查询的列
+```sql
+mysql> call proc_drop_index('highdb10','student');
+mysql> show index from student;
+mysql> CREATE INDEX idx_age_name ON student(age,name);
+-- 使用<>或者!=的情况默认是会使得索引失效的，但是在覆盖索引的时候，优化器可会使继续使用索引，减少回表查找
+mysql> EXPLAIN SELECT *FROM student WHERE age<>20;
+mysql> EXPLAIN SELECT age,name FROM student WHERE age<>20;
+-- 使用like '%abc%'的情况没有使用左侧匹配的原则默认是会使得索引失效的，但是在覆盖索引的时候，优化器可会使继续使用索引，减少回表查找
+mysql> EXPLAIN SELECT *FROM student WHERE name LIKE '%abc%';
+mysql> EXPLAIN SELECT id,age,name FROM student WHERE name LIKE '%abc%';
+```
+![覆盖索引即使使用了正常情况使得索引失效的运算符，依旧可以走索引](./files\索引优化-查询优化-14.PNG)
+
+2. 覆盖索引的利弊
+    好处:
+        1. 避免了Innodb表进行索引的二次查询
+            Innodb是以聚集索引的顺序来存储数据的，对于InnoDB来说，二级索引在叶子结点所保存的是行的主键信息，如果用二级索引查询数据，在查找到
+            对应的数据后，需要使用随从的主键进行二次回表查找才可以真正获取到我们真正需要的数据。在覆盖索引中，二级索引的键值中可以获取所需要的数据
+            ，避免了对主键的二次查询，减少了IO操作，提升了查询的效率。
+               
+        2. 可以把随机IO变成顺序IO加快查询效率
+            由于覆盖素银是按键值的顺序存储的，对于IO密集型的范围查找来说，对比随机从磁盘读取每一行的数据IO要少的多，因此利用覆盖索引在
+            访问的时候可以把磁盘的随机读取的IO转变称为索引查找的顺序IO。
+    弊端:
+        索引字段的维护总是有代价的。因此，在建立冗余索引来支持覆盖索引时就需要权衡。这是业务DBA，或者称为业务数据结构师的工作。
+        
+        
+        
+        
+## 索引下推
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
