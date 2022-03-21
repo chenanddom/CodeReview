@@ -890,6 +890,7 @@ EXPLAIN SELECT *FROM s1 WHERE key1>'z' AND key1 LIKE '%zhsa%';
 ```
 ![ICP的开启和关闭](./files\索引优化-查询优化-15.PNG)
 
+[下一章(数据库的设计原则)](./)
 
 
 
