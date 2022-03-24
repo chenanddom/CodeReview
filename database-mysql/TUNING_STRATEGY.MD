@@ -182,3 +182,268 @@ thread_cache_size=120 query_cache_size=32M
 ```        
         
 ##  优化数据库结构
+
+### 冷热数据分离
+* 拆分表
+举例子：
+会员members表存储会员登录认证信息，该表中有很多字段，如id、姓名、密码、地址、电
+话、个人描述字段。其中地址、电话、个人描述等字段并不常用，可以将这些不常用的字段分解出另一
+个表。将这个表取名叫members_detail，表中有member_id、address、telephone、description等字段。
+这样就把会员表分成了两个表，分别为members表和members_detail表。
+```sql
+CREATE TABLE members (
+id int(11) NOT NULL AUTO_INCREMENT,
+username varchar(50) DEFAULT NULL,
+password varchar(50) DEFAULT NULL,
+last_login_time datetime DEFAULT NULL,
+last_login_ip varchar(100) DEFAULT NULL,
+PRIMARY KEY(Id)
+);
+CREATE TABLE members_detail (
+Member_id int(11) NOT NULL DEFAULT 0,
+address varchar(255) DEFAULT NULL,
+telephone varchar(255) DEFAULT NULL,
+description text
+);
+```
+如果需要查询会员的基本信息或详细信息，那么可以用会员的id来查询。如果需要将会员的基本信息和
+详细信息同时显示，那么可以将members表和members_detail表进行联合查询，查询语句如下：
+```sql
+SELECT * FROM members LEFT JOIN members_detail on members.id =
+members_detail.member_id;
+```
+通过这种分解可以提高表的查询效率。对于字段很多且有些字段使用不频繁的表，可以通过这种分解的
+方式来优化数据库的性能。
+
+
+* 增加中间表
+举例：
+学生信息表和班级表的SQL语句如下：
+```sql
+CREATE TABLE `class` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`className` VARCHAR(30) DEFAULT NULL,
+`address` VARCHAR(40) DEFAULT NULL,
+`monitor` INT NULL ,
+PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+CREATE TABLE `student` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`stuno` INT NOT NULL ,
+`name` VARCHAR(20) DEFAULT NULL,
+`age` INT(3) DEFAULT NULL,
+`classId` INT(11) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+```
+现在有一个模块需要经常查询带有学生名称（name）、学生所在班级名称（className）、学生班级班
+长（monitor）的学生信息。根据这种情况可以创建一个temp_student 表。temp_student表中存储学生
+名称（stu_name）、学生所在班级名称（className）和学生班级班长（monitor）信息。创建表的语句
+如下：
+```sql
+CREATE TABLE `temp_student` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`stu_name` INT NOT NULL ,
+`className` VARCHAR(20) DEFAULT NULL,
+`monitor` INT(3) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+```
+以后，可以直接从temp_student表中查询学生名称、班级名称和班级班长，而不用每次都进行联合查
+询。这样可以提高数据库的查询速度。
+
+
+* 增加冗余字段
+设计数据库表时应尽量遵循范式理论的规约，尽可能减少冗余字段，让数据库设计看起来精致、优雅。
+但是，合理地加入冗余字段可以提高查询速度。
+表的规范化程度越高，表与表之间的关系就越多，需要连接查询的情况也就越多。尤其在数据量大，而
+且需要频繁进行连接的时候，为了提升效率，我们也可以考虑增加冗余字段来减少连接
+*　优化数据类型
+
+* 优化插入记录的速度
+情况1：对整数类型数据进行优化。
+遇到整数类型的字段可以用 INT 型。这样做的理由是，INT 型数据有足够大的取值范围，不用担心数
+据超出取值范围的问题。刚开始做项目的时候，首先要保证系统的稳定性，这样设计字段类型是可以
+的。但在数据量很大的时候，数据类型的定义，在很大程度上会影响到系统整体的执行效率。
+对于非负型的数据（如自增ID、整型IP）来说，要优先使用无符号整型UNSIGNED 来存储。因为无符号
+相对于有符号，同样的字节数，存储的数值范围更大。如tinyint有符号为-128-127，无符号为0-255，多
+出一倍的存储空间。
+情况2：既可以使用文本类型也可以使用整数类型的字段，要选择使用整数类型。
+跟文本类型数据相比，大整数往往占用更少的存储空间，因此，在存取和比对的时候，可以占用更少的
+内存空间。所以，在二者皆可用的情况下，尽量使用整数类型，这样可以提高查询的效率。如：将IP地
+址转换成整型数据。
+情况3：避免使用TEXT、BLOB数据类型
+
+情况4:避免使用ENUM类型
+修改ENUM值需要使用ALTER语句；ENUM类型的ORDER BY 操作效率低，需要额外的操作，使用TINYINT来代替ENUM类型。
+
+情况5:使用TIMESTAMP存储时间
+TIMESTAMP存储的时间范围1970-01-01 00:00:01~2038-01-19 03:14:07.TIMESTAMP使用4字节，DATETIME使用8字节，同时TIMESTAM具有自动赋值
+以及自动更新的特性
+
+情况6:用DECIMAL代替FLOAT和DOUBLE存储精确浮点数
+1.非精确浮点:float,double
+2.精确浮点数：decimal
+Decimal类型为精确浮点数，在计算时不会丢失精度，尤其时财务相关的金融类数据。占用空间由定义的宽度决定，每4个字节可以存储9位数字，并且
+小数点要占用一个字节。可用于存储比bigint更大的整型数据。
+遇到数据量大的项目时，一定要在充分了解业务需求的前提下，合理优化数据类型，这样才能充分发挥资源的效率，时系统达到最优。
+
+
+* 优化插入记录的速度
+    * MyISAM引擎的表：
+    
+        ① 禁用索引
+        
+        ② 禁用唯一性检查
+        
+        ③ 使用批量插入
+        
+        ④ 使用LOAD DATA INFILE 批量导入
+    
+    * InnoDB引擎的表：
+    
+        ① 禁用唯一性检查
+    
+        ② 禁用外键检查
+    
+        ③ 禁止自动提交
+
+
+*   使用非空约束
+
+在设计字段的时候，如果业务允许，建议尽量使用非空约束    
+
+
+* 分析表、检查表与优化表
+    1. 分析表
+        MySQL中提供了ANALYZE TABLE语句分析表，ANALYZE TABLE语句的基本语法如下：
+```sql
+ ANALYZE [LOCAL| NOT_WRITE_TO_BINLOG] TABLE tbl_name[,tb1_name]...
+```
+默认的，MySQL服务会将ANALYZE TABLE语句写到binlog中，以便在主从架构中，从服务能够通过不数据，可以添加参数LOCAL或者NO_WRITE_TO_BINLOG取消语句写道binlog中。
+
+使用ANALYZE  TABLE分析表的过程中，数据库系统会自动堆表加一个只读锁。在分析器间，只能拂去表中的记录，不能更新和插入记录。ANALYZE TABLE 语句
+能够分析InnoDB和MyISAM类型的表，但是不能作用于视图。
+
+ANALYZE TABLE分析后的统计结构会反应到cardinality的值，盖值同i了表中某一键所在的列不重复的个数。盖值越接近表中的总行数，则在表连接查询或者
+索引查询时，就越先被优化器选择使用。也就是索引列的cardinality的值于表中的数据的总条数差距越大，及时查询的时候使用了该索引作为查询的条件，
+存储引擎实际拆线呢的时候使用的改了就越小。cardinality可以通过SHOW INDEX FROM tb_name;查看。
+
+* 检查表
+MySQL中可以使用CHECK TABLE语句来检查表，CHECK TABLE语句能够检查InnoDB和MyISAM类型的表是否存在错误，CHECK TABLE语句在执行的过程中
+也会给表加上只读锁。
+
+对于MyISAM类型的表，CHECK TABLE语句还会更新关键字统计数据。而且，CHECK TABLE也可以检查视
+图是否有错误，比如在视图定义中被引用的表已不存在。该语句的基本语法如下：
+```sql
+CHECKE TABLE table_name [,table_name2]...[option]...
+option={QUICK |FAST | MEDIUM | EXTENDED | CHANGED}
+```
+其中，tbl_name是表名；option参数有5个取值，分别是QUICK、FAST、MEDIUM、EXTENDED和
+CHANGED。各个选项的意义分别是：
+1. QUICK ：不扫描行，不检查错误的连接。
+2. FAST ：只检查没有被正确关闭的表。
+3. CHANGED ：只检查上次检查后被更改的表和没有被正确关闭的表。
+4. MEDIUM ：扫描行，以验证被删除的连接是有效的。也可以计算各行的关键字校验和，并使用计算
+出的校验和验证这一点。
+5. EXTENDED ：对每行的所有关键字进行一个全面的关键字查找。这可以确保表是100%一致的，但
+是花的时间较长。
+
+* 优化表 OPTIMIZE TABLE
+MySQL中使用OPTIMIZE TABLE 语句来优化表。但是，OPTILMIZE TABLE语句只能优化表中的
+VARCHAR 、BLOB 或TEXT 类型的字段。一个表使用了这些字段的数据类型，若已经删除了表的一大部
+分数据，或者已经对含有可变长度行的表（含有VARCHAR、BLOB或TEXT列的表）进行了很多更新，则
+应使用OPTIMIZE TABLE来重新利用未使用的空间，并整理数据文件的碎片。
+OPTIMIZE TABLE 语句对InnoDB和MyISAM类型的表都有效。该语句在执行过程中也会给表加上只读锁。
+OPTILMIZE TABLE语句的基本语法如下：
+```sql
+OPTIMIZE [LOCAL | NO_WRITE_TO_BINLOG] TABLE table_name [, table_name2]...
+```
+LOCAL | NO_WRITE_TO_BINLOG关键字的意义和分析表相同，都是指定不写入二进制日志。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[下一章(MySQL事务)](./MYSQL_TRANSACTION.MD)
