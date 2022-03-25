@@ -285,3 +285,14 @@ SET SESSION TRANSACTION_ISOLATION = 'SERIALIZABLE';
 总结:
 数据库规定了多种事务隔离级别，不同隔离级别对应不同的干扰程度，隔离级别越高，数据一致性
 就越好，但并发性越弱。
+
+
+## 常见的事务分类
+从事务理论的角度来看，可以把事务分为以下几种类型：
+* 扁平事务(Flat Transactions)
+* 带有保存点的扁平事务(Flat Transaction with Savepoints)
+* 链事务(Chained Transactions)
+* 嵌套事务(Nested Transactions)
+* 分布式事务(Distributed Transactions)
+
+[下一章(MySQL事务日志)](./MYSQL_TRANSACTION_LOG.MD)
