@@ -240,13 +240,48 @@ SQL标准中规定，针对不同的隔离级别，并发事务可以发生不�
 |REPEATABLE READ|No|No|Yes|
 |SERIALIZABLE|No|No|No|
 
+查看MySQL的事务隔离级别
+5.7.20以前的版本查看事务隔离级别的方式:
+
+![mysql5.7.20以前的版本](./files\数据库事务-6.PNG)
+
+5.7.20版本以后查看数据库事务隔离级别的方式：
+
+![mysql5.7.20以前后的版本](./files\数据库事务-7.PNG)
 
 
+### 设置数据库隔离级别
+通过一下语句进行设置
+```sql
+-- 隔离级别有 READ UNCOMMITED、READ COMMITED、REPEATABLE READ、SERIALIZABLE
+SET  [GLOBAL |SESSION ] TRANSACTION ISOLATION LEVEL 隔离级别;
+-- 或者
+-- 隔离级别有 READ-UNCOMMITED、READ-COMMITED、REPEATABLE-READ、SERIALIZABLE
+SET [GLOBAL |SESSION ] TRANSACTION_ISOLATION ='隔离级别';
 
+```
+关于设置时使用GLOBAL或SESSION的影响：
+* 使用GLOBAL 关键字（在全局范围影响）：
+```sql
+SET GLOBAL TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+#或
+SET GLOBAL TRANSACTION_ISOLATION = 'SERIALIZABLE';
+```
+则：
+当前已经存在的会话无效
+只对执行完该语句之后产生的会话起作用
 
+* 使用SESSION 关键字（在会话范围影响）：
+```sql
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+#或
+SET SESSION TRANSACTION_ISOLATION = 'SERIALIZABLE';
+```
+则：
+对当前会话的所有后续的事务有效
+如果在事务之间执行，则对后续的事务有效
+该语句可以在已经开启的事务中间执行，但不会影响当前正在执行的事务
 
-
-
-
-
-
+总结:
+数据库规定了多种事务隔离级别，不同隔离级别对应不同的干扰程度，隔离级别越高，数据一致性
+就越好，但并发性越弱。
