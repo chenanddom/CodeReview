@@ -140,5 +140,211 @@ MySQL5.5引入了meta data lock，简称MDL锁，属于表锁范畴。MDL 的作
 ![MDL读和MDL读不阻塞，但是中间如果加了MDL写会阻塞](./files\数据库锁-5.PNG)    
 
 
-### 行锁
+### InnoDB中的行锁
+#### 记录锁
+行锁(Row Lock)也称为记录锁，就是锁住某一行(某条记录row).需要注意的是，MySQL服务器层并没有实现行锁机制，行锁旨在存储引擎层实现的
+* 优点:
+锁定力度小，发生锁冲突的概率低，可以实现的并发度高。
+* 缺点:
+对于锁的开销比较打，枷锁会比价欧曼，容易出现死锁的情况
+
+InnoDB与MyISAM的最大不同点是：1.支持事务(TRANSACTION);2.采用行级锁。
+
+举例子：
+相关的表结构和插入的数据如下SQL所示:
+```sql
+CREATE TABLE `student` (
+  `id` int NOT NULL,
+  `name` varchar(20) DEFAULT NULL,
+  `class` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+insert into student values(1,'张三','一班'),(3,'李四','一班'),(8,'王五','二班'),(15,'赵六','二班'),(20,'周七','二班');
+```
+|会话1|会话2|
+| ---- | ---- |
+|begin; update student set name='张三1' where id=1;||
+||begin;SELECT *FROM student WHERE id=1 lock in share mode;这里会被阻塞 |
+|commit;||
+||SELECT *FROM student WHERE id=1 lock in share mode;|
+||1,'张三1','一班'|
+
+记录锁是有S锁和X锁之分的，称之为S型记录锁和X型记录锁。
+1. 当一个事务获取了一条记录的S型记录锁后，其他爱的事务可以继续获取该记录的S记录锁，但是不可以继续获取X型记录锁；
+2. 当一个事务获取了一条激励的X型记录锁后，其他的事务既不可以继续获取该记录的S型记录锁，也不可以继续获取X型记录锁。
+
+#### 间隙锁
+MySQL在REPEATABLE READ隔离级别下是可以解决幻读问题的，解决方案有两种，可以使用MVCC方案解决，也可以采用加锁方案解决。但是在使用加锁方
+案解决时有个大问题，就是事务在第一次执行读取操作时，哪些幻影记录尚不存在，我们无法给这些幻影记录加上记录锁。InnoDB提出一种Gap Locks的锁，
+官方的类型称为:LOCK_GAP，我们可以简称为gap锁，比如，我们把id之为8的那条记录加一个gap锁的示意图
+![间隙锁](./files\数据库锁-6.png)
+ 图中id值为8的记录加了gap锁，意味着不允许别的事务在id值为8的记录前边的间隙插入新记录，其实就是
+ id列的值(3, 8)这个区间的新记录是不允许立即插入的。比如，有另外一个事务再想插入一条id值为4的新
+ 记录，它定位到该条新记录的下一条记录的id值为8，而这条记录上又有一个gap锁，所以就会阻塞插入
+ 操作，直到拥有这个gap锁的事务提交了之后，id列的值在区间(3, 8)中的新记录才可以被插入。
+ 
+ gap 锁的提出仅仅时为了防止插入幻影记录而提出的。虽然有共享gap锁这样的说法，但是它们其他的作用是相同的。而且如果对一条记录加了gap锁
+ (不论时贡献gap锁还是独占gap锁)，并不会限制其他事务对这条记录加载记录锁或者继续加gap锁。
+ 例子:
+
+ ![gap锁](./files\数据库锁-7.PNG)
+ 
+由上面的例子可以知道在(3,8)区间时被加了锁的。
+![锁的范围](./files\数据库锁-8.PNG)
+ 
+查看间隙锁
+```sql
+mysql> select *from performance_schema.data_locks\G;
+*************************** 1. row ***************************
+               ENGINE: INNODB
+       ENGINE_LOCK_ID: 2354962624392:1173:2354927754872
+ENGINE_TRANSACTION_ID: 6409
+            THREAD_ID: 117
+             EVENT_ID: 11
+        OBJECT_SCHEMA: highdb15
+          OBJECT_NAME: student
+       PARTITION_NAME: NULL
+    SUBPARTITION_NAME: NULL
+           INDEX_NAME: NULL
+OBJECT_INSTANCE_BEGIN: 2354927754872
+            LOCK_TYPE: TABLE
+            LOCK_MODE: IX
+          LOCK_STATUS: GRANTED
+            LOCK_DATA: NULL
+*************************** 2. row ***************************
+               ENGINE: INNODB
+       ENGINE_LOCK_ID: 2354962625168:1173:2354927759560
+ENGINE_TRANSACTION_ID: 283829939335824
+            THREAD_ID: 110
+             EVENT_ID: 50
+        OBJECT_SCHEMA: highdb15
+          OBJECT_NAME: student
+       PARTITION_NAME: NULL
+    SUBPARTITION_NAME: NULL
+           INDEX_NAME: NULL
+OBJECT_INSTANCE_BEGIN: 2354927759560
+            LOCK_TYPE: TABLE
+            LOCK_MODE: IS
+          LOCK_STATUS: GRANTED
+            LOCK_DATA: NULL
+*************************** 3. row ***************************
+               ENGINE: INNODB
+       ENGINE_LOCK_ID: 2354962625168:112:4:1:2354927756776
+ENGINE_TRANSACTION_ID: 283829939335824
+            THREAD_ID: 110
+             EVENT_ID: 50
+        OBJECT_SCHEMA: highdb15
+          OBJECT_NAME: student
+       PARTITION_NAME: NULL
+    SUBPARTITION_NAME: NULL
+           INDEX_NAME: PRIMARY
+OBJECT_INSTANCE_BEGIN: 2354927756776
+            LOCK_TYPE: RECORD
+            LOCK_MODE: S
+          LOCK_STATUS: GRANTED
+            LOCK_DATA: supremum pseudo-record
+3 rows in set (0.00 sec)
+```
+ 
+*　行锁会发生死锁
+举例子：
+
+|事务1|事务2|
+| ---- | ---- |
+|begin;select *from student where id=5 lock in share mode;|begin;|
+||select *from student where id=5 lock for update;|
+||insert into student(id,name,class)values(6,'jerry','二班');此处会被阻塞|
+|insert into student(id,name,class)values(6,'jerry','二班');此处会发生死锁||
+上面的操作会报错:
+```text
+ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
+```
+#### 临键锁（Next-Key Locks）
+有时候我们既想锁住某条记录，又想阻止其他事务在该记录前边的间隙插入新记录，所以InnoDB就提
+出了一种称之为Next-Key Locks 的锁，官方的类型名称为： LOCK_ORDINARY ，我们也可以简称为
+next-key锁。Next-Key Locks是在存储引擎innodb 、事务级别在可重复读的情况下使用的数据库锁，
+innodb默认的锁就是Next-Key locks。
+
+```sql
+begin;
+select * from student where id <=8 and id > 3 for update;
+```
+![临键锁（Next-Key Locks）](./files\数据库锁-9.PNG)
+ 
+#### 插入意向锁
+我们说一个事务在插入一条记录时需要判断一下插入位置是不是被别的事务加了gap锁（ next-key锁
+也包含gap锁），如果有的话，插入操作需要等待，直到拥有gap锁的那个事务提交。但是InnoDB规
+定事务在等待的时候也需要在内存中生成一个锁结构，表明有事务想在某个间隙中插入新记录，但是
+现在在等待。InnoDB就把这种类型的锁命名为Insert Intention Locks ，官方的类型名称为：
+LOCK_INSERT_INTENTION ，我们称为插入意向锁。插入意向锁是一种Gap锁，不是意向锁，在insert
+操作时产生。
+插入意向锁是在插入一条记录行前，由 INSERT 操作产生的一种间隙锁。
+事实上插入意向锁并不会阻止别的事务继续获取该记录上任何类型的锁。 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
