@@ -1,6 +1,8 @@
 package com.itdom.controller;
 
+import com.itdom.event.UserLoginEvent;
 import com.itdom.utils.JasperReportUtil;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
-@Controller
+@Controller("controller")
 @RequestMapping("/jasper")
 public class JasperReportController {
     @GetMapping("/getReport")
@@ -53,5 +55,10 @@ public class JasperReportController {
         } else if (reportType.equals("html")) {
             JasperReportUtil.exportToHtml(jasperPath, parameters, list, response);
         }
+    }
+
+    @EventListener
+    public void listenerUserLogin(UserLoginEvent source){
+        System.out.println(source.getUsername());
     }
 }
