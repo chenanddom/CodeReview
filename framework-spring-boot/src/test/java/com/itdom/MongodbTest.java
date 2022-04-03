@@ -22,7 +22,8 @@ public class MongodbTest {
     }
     @Test
     public void testUpdate(){
-        commentService.testUpdate("10005");
+//        commentService.testUpdate("10005");
+        commentService.testUpdatePlus();
     }
     @Test
     public void testSearch(){

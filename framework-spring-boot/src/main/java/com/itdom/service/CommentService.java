@@ -5,17 +5,25 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.itdom.dao.CommentRepository;
 import com.itdom.po.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 public class CommentService {
 
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
 
     public void testAdd(){
@@ -48,6 +56,18 @@ public class CommentService {
 
 
     }
+
+    public void testUpdatePlus(){
+        Pattern pattern = Pattern.compile("^.*开水.*$", Pattern.CASE_INSENSITIVE);
+
+        Query query = new Query(Criteria.where("content").regex(pattern));
+        List<Comment> comments = mongoTemplate.find(query, Comment.class);
+        System.out.println(JSON.toJSONString(comments));
+
+//        mongoTemplate.updateMulti()
+
+    }
+
 
     public void testSearchComment(Integer page,Integer pageSize) {
         Page<Comment> comments = commentRepository.findAll(PageRequest.of(page - 1, pageSize));
