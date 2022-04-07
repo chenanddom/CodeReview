@@ -9,9 +9,7 @@ public class AtomicReferenceFieldUpdaterTest {
         System.out.println(flag);
         System.out.println(student.getName());
     }
-}
-
-class Student {
+static class Student {
     public volatile String name;
 
     public Student() {
@@ -25,3 +23,5 @@ class Student {
         this.name = name;
     }
 }
+}
+
