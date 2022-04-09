@@ -15,7 +15,7 @@ public class AQSTest {
         new Thread(()->{
             myLock.lock();
             log.debug("locking...");
-            myLock.lock();
+//            myLock.lock();
             try {
                 log.debug("locking...");
                 Thread.sleep(1000L);
