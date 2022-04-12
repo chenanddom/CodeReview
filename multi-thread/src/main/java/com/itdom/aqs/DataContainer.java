@@ -2,7 +2,6 @@ package com.itdom.aqs;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,7 +21,7 @@ public class DataContainer {
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
         fixedThreadPool.submit(() -> {
             for (int i = 0; i < 100; i++) {
-            dataContainer.read();
+                dataContainer.read();
             }
         });
         fixedThreadPool.submit(() -> {
@@ -65,6 +64,5 @@ public class DataContainer {
             writeLock.unlock();
         }
     }
-
 
 }
