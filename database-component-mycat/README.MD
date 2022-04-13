@@ -463,6 +463,73 @@ dataNode标签中定义了MyCat中的数据节点, 也就是我们通常说的�
 	</dataHost>
 ```
 
+## MyCat分片
+
+### 垂直分片
+schema.xml配置如下：
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+	<schema name="mycatdb" checkSQLschema="true" sqlMaxLimit="100">
+		<table name="tb_areas_city" dataNode="dn1" primaryKey="id" />
+		<table name="tb_areas_provinces" dataNode="dn1" primaryKey="id" />
+		<table name="tb_areas_region" dataNode="dn1" primaryKey="id" />
+		<table name="tb_user" dataNode="dn1" primaryKey="id" />
+		<table name="tb_user_address" dataNode="dn1" primaryKey="id" />
+		<table name="tb_goods_base" dataNode="dn2" primaryKey="id" />
+		<table name="tb_goods_desc" dataNode="dn2" primaryKey="goods_id" />
+		<table name="tb_goods_item_cat" dataNode="dn2" primaryKey="id" />
+		<table name="tb_order_item" dataNode="dn3" primaryKey="id" />
+		<table name="tb_order_master" dataNode="dn3" primaryKey="order_id" />
+		<table name="tb_order_pay_log" dataNode="dn3" primaryKey="out_trade_no"/>
+	</schema>
+		<dataNode name="dn1" dataHost="dh1" database="user_db" />
+		<dataNode name="dn2" dataHost="dh1" database="goods_db" />
+		<dataNode name="dn3" dataHost="dh1" database="order_db" />
+	<dataHost name="dh1" maxCon="1000" minCon="10" balance="0"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="hostM1" url="192.168.0.104:3307" user="root"
+				   password="root@123">
+		</writeHost>
+	</dataHost>
+</mycat:schema>
+```
+SQL如下:
+[user表](./files\user.sql)
+[order表](./files\order.sql)
+[goods表](./files\goods.sql)
+
+完成上述的配置后重启mycat,重新登录mycat可以执行sql
+
+注意：
+对于需要跨库执行的join的并且关联查询的表是不大的表，可以设置称为全局表
+ ```xml
+		<table name="tb_user" dataNode="dn1" primaryKey="id" />
+		<table name="tb_user_address" dataNode="dn1" primaryKey="id" />
+		<table name="tb_goods_base" dataNode="dn2" primaryKey="id" />
+		<table name="tb_goods_desc" dataNode="dn2" primaryKey="goods_id" />
+		<table name="tb_goods_item_cat" dataNode="dn2" primaryKey="id" />
+		<table name="tb_order_item" dataNode="dn3" primaryKey="id" />
+		<table name="tb_order_master" dataNode="dn3" primaryKey="order_id" />
+		<table name="tb_order_pay_log" dataNode="dn3" primaryKey="out_trade_no"/>
+	
+		<table name="tb_areas_city" dataNode="dn1,dn2,dn3" primaryKey="id" type="global"/>
+		<table name="tb_areas_provinces" dataNode="dn1,dn2,dn3" primaryKey="id" type="global"/>
+		<table name="tb_areas_region" dataNode="dn1,dn2,dn3" primaryKey="id" type="global"/>
+	
+	</schema>
+```
+除了mycat的配置schema.xml配置需要修改之外，同时在user_db,order_db,goods_db也需要有tb_areas_city、
+tb_areas_provinces、tb_areas_region表
+
+
+![关联查询](./files\全局表解决关联查询.PNG)
+
+
+### 分片规则
+
 
 
 
