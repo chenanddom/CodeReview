@@ -252,7 +252,8 @@ dn1,于是SQL语句被发送到第一个节点中执行, 然后再将查询的�
 
 
 ## MyCat配置文件详解
-server.xml
+###server.xml
+* system标签的内的解析
 
 |属性|取值|含义|
 | ---- | ---- | ---- |
@@ -278,3 +279,234 @@ server.xml
 |sqlExecuteTimeout|300|执行SQL的超时时间, 如果SQL语句执行超时, 将关闭连接; 默认300秒;|
 |serverPort|8066|定义MyCat的使用端口, 默认8066|
 |managerPort|9066|定义MyCat的管理端口, 默认9066|
+
+* user标签的解析
+user标签主要用于定义登录MyCat的用户和权限:
+    1. <user name="root" defaultAccount="true">：name属性用于声明用户名；
+    2. <property name="schemas"">mycat</property>:能够访问的逻辑库，多个的话使用","分割
+    3. <property name="password">123456</property>:指定用户访问MyCat的密码。
+    4. <property name="readOnly">true</property>:是否只读
+    5. <property name="benchmark">11111</property>:指定前端的这个题连接数量，0或者不设置标识不限制。
+    6. <property name="usingDecrypt">0</property>:是否对密码加密，默认数据0否，1是。
+    加密方式如下：
+```text
+[root@localhost lib]# java -cp Mycat-server-1.6.7.3-release.jar io.mycat.util.DecryptUtil 0:root:test123
+其中 0:user:password是加密字符串,有两种格式
+
+dataHost加密格式
+1:hostM1:root:123456
+1代表是dataHost加密
+hostM1是<writeHost host="hostM1" 
+root是user="root"
+123456是 password=明文密码(123456)
+
+对应writeHost配置
+		<writeHost host="hostM1" url="localhost:3306" user="root"
+				   password="BpkNIjF7LfzS1C76HT7B1bJgmGIDtPihqIvHBlC92L1IFqsMfoJEMk1EkxSzjasWB4GWoUcODYO4AaJstdAp5w==" usingDecrypt="1">
+			<!-- can have multi read hosts -->
+		</writeHost>
+
+mycat用户登录密码加密格式
+0:root:123456
+0代表mycat用户登录密码加密
+	<user name="root" defaultAccount="true">
+		<property name="usingDecrypt">1</property>
+		<property name="password">d6D+pOmkuUoY09p4/aivwMsScLa7zfjIwAxvkEhr3v7en06mEXoX9DTTjQNug5CfvGf7Wy9oLcthYI3yLMSjIg==</property>
+		<property name="schemas">TESTDB</property>
+kOdSW+qrXfdYoa+qhNBZVARSxlhCZFS+PwP2NTzKYtb8rOntlZa+XFfxUPgE+3spkNpZgiNlDonoI1zz6OGwcg==
+    
+```
+user标签对应的配置
+```xml
+<user name="root" defaultAccount="true">
+		<!--<property name="password">test123</property>-->
+		<property name="password">kOdSW+qrXfdYoa+qhNBZVARSxlhCZFS+PwP2NTzKYtb8rOntlZa+XFfxUPgE+3spkNpZgiNlDonoI1zz6OGwcg==</property>
+		<property name="schemas">mycatdb</property>
+		<property name="usingDecrypt">1</property>
+		
+		<!-- 表级 DML 权限设置 -->
+		<!-- 		
+		<privileges check="false">
+			<schema name="TESTDB" dml="0110" >
+				<table name="tb01" dml="0000"></table>
+				<table name="tb02" dml="1111"></table>
+			</schema>
+		</privileges>		
+		 -->
+	</user>
+```
+重启mycat-server
+```shell script
+./bin/mycat restart
+```
+再次登录可以成功:
+
+![重启mycat-server再次登录可以成功](./files\密码加密后登录.PNG)
+
+
+* 防火墙firewall 标签
+firewall标签是用来定义防火墙；firewall下的whitehost标签用来定义IP白名单，backlist用来定义SQL黑名单
+```xml
+<firewall>
+	   <whitehost>
+	      <host host="1*7.0.0.*" user="root"/>
+	   </whitehost>
+       <blacklist check="false">
+       </blacklist>
+	</firewall>
+```
+SQL黑名单的相关配置
+
+|配置项|缺省值|描述|
+| ---- | ---- | ---- |
+|selectAllow|true|是否允许执行SELECT语句|
+|selectAllColumnAllow|true|是否允许执行 SELECT * FROM T 这样的语句。如果设置为 false，不允许执行select * from t，但可以select *from (select id, name from t) a。这个选项是防御程序通过调用 select *获得数据表的结构信息。|
+|selectIntoAllow|true|SELECT查询中是否允许INTO子句|
+|deleteAllow|true|是否允许执行DELETE语句|
+|updateAllow|true|是否允许执行UPDATE语句|
+|insertAllow|true|是否允许执行INSERT|
+|replaceAllow|true|是否允许执行REPLACE语句|
+|mergeAllow|true|是否允许执行merge语句，这个旨在oracle数据库使用|
+|callAllow|true|是否允许通过jdbc的call语法调用存储过程|
+|setAllow|true|是否允许使用SET语法|
+|truncateAllow|true|truncate 语句是危险，缺省打开，若需要自行关闭|
+|createTableAllow|true|是否允许创建表|
+|alterTableAllow|true|是否允许执行 Alter Table 语句|
+|dropTableAllow|true|是否允许修改表|
+|commentAllow|false|是否允许语句中存在注释，Oracle 的用户不用担心，Wall能够识别 hints和注释的区别|
+|noneBaseStatementAllow|false|是否允许非以上基本语句的其他语句，缺省关闭，通过这个选项就能够屏蔽 DDL。|
+|multiStatementAllow|false|是否允许一次执行多条语句，缺省关闭|
+|useAllow|true|是否允许执行 mysql 的 use 语句，缺省打开|
+|describeAllow|true|是否允许执行 mysql 的 describe 语句，缺省打开|
+|showAllow|true|是否允许执行 mysql 的 show 语句，缺省打开|
+|commitAllow  |true|是否允许执行 commit 操作|
+|rollbackAllow |true| 是否允许执行 roll back 操作|
+| 是否允许执行 roll back 操作|true|检查 SELECT 语句的 WHERE 子句是否是一个永真条件|
+|selectHavingAlwayTrueCheck |true|检查 SELECT 语句的 HAVING 子句是否是 一个永真条件|
+|deleteWhereAlwayTrueCheck|true|检查 DELETE 语句的 WHERE 子句是否是一个永真条件|
+|deleteWhereNoneCheck|false|检查 DELETE 语句是否无 where 条件，这是有风险的，但不是 SQL 注入类型的风险|
+|updateWhereAlayTrueCheck|true|检查 UPDATE 语句的 WHERE 子句是否是一个永真条件|
+|updateWhereNoneCheck|false|检查 UPDATE 语句是否无 where 条件，这是有风险的，但不是SQL 注入类型的风险|
+|conditionAndAlwayTrueAllow|false|检查查询条件(WHERE/HAVING 子句)中是否包含 AND 永真条件|
+|conditionAndAlwayFalseAllow|false|检查查询条件(WHERE/HAVING 子句)中是否包含 AND 永假条件|
+|conditionLikeTrueAllow|true|检查查询条件(WHERE/HAVING 子句)中是否包含 LIKE 永真条件|
+|selectIntoOutfileAllow|false|SELECT ... INTO OUTFILE 是否允许，这个是 mysql 注入攻击的常见手段，缺省是禁止的|
+|selectUnionCheck|true|检测 SELECT UNION|
+|selectMinusCheck|true|检测 SELECT MINUS|
+|selectExceptCheck|true|检测 SELECT EXCEPT|
+|selectIntersectCheck |true|检测 SELECT INTERSECT|
+...
+
+
+
+
+### schema.xml
+schema.xml作为MyCat中最重要的配置文件之一，涵盖了MyCat的逻辑库、表、分片规则、分配结点及数据源的配置
+
+* schema标签
+schema标签用于定义MyCat示例中的逻辑库，一个MyCat实例中，可以有多个逻辑库，可以通过schema标签来划分不同的逻辑库。MyCat中的逻辑库的概念
+，等同于MySQL中的database概念，需要操作某个罗基库下的表时，也需要切换逻辑库。
+```xml
+<schema name="mycatdb" checkSQLschema="true" sqlMaxLimit="100">
+			<table name="TB_TEST" primaryKey="id" dataNode="dn1,dn2,dn3" />
+</schema>
+```
+1. name标识逻辑库的名字，可以自己定义任何合法的字符串。
+2. checkSQLschema取值为true/false如果设置为true时，如果我们执行了语句为"select *from mycatdb.tb_test;",则MyCat会把自动把schema字符
+去掉，把SQL 修改为"select * from tb_test",可以避免SQL发生到后端数据库时，报table不存在的异常。不过当我们在编写SQL语句时, 指定了一个不
+存在schema, MyCat是不会帮我们自动去除的 ,这个时候数据库就会报错, 所以在编写SQL语句时,最好不要加逻辑库的库名, 直接查询表即可。
+3.sqlMaxLimit
+当盖属性设置为某个数值时，每次执行的SQL语句如果没有加上limit语句，Mycat也会自动加上limit语句后面加上对应的数值。也就是说，如果我们设置概知为
+100，则执行select *from tb_test 于与 select * from tb_test limit 100 是相同的效果 。所以在正常的使用中, 建立设置该值 , 这样就可以避免每次有过多的数据返回。
+
+* 子标签table
+```xml
+<table name="TB_TEST" dataNode="dn1,dn2,dn3" rule="auto-1 sharding-long" />
+```
+|属性名称|值|含义|
+| ---- | ---- | ---- |
+|name|string|定义逻辑表的表名 , 在该逻辑库下必须唯一。|
+|dataNode|string|定义的逻辑表所属的dataNode , 该属性需要与dataNode标签中的name属性的值对应。 如果一张表拆分的数据，存储在多个数据节点上，多个节点的名称使用","分隔 。|
+|rule|string|该属性用于指定逻辑表的分片规则的名字, 规则的名字是在rule.xml文件中定义的, 必须与tableRule标签中name属性对应。|
+|ruleRquired|boolean|盖属性用于指定表是否绑定分片规则，如果配置为true，但是没有具体的rule，程序会报错|
+|primaryKey|string|逻辑表的主键|
+|type|string|该属性定义了逻辑表的类型，目前逻辑鸟只有全局表和普通表全局表：type的值是 global , 代表 全局表 。普通表：无s|
+|autoIncrement|boolean|mysql对非自增长主键，使用last_insert_id() 是不会返回结果的，只会返回0。所以，只有定义了自增长主键的表，才可以用last_insert_id()返回主键值。 mycat提供了自增长主键功能，但是对应的mysql节点上数据表，没有auto_increment,那么在mycat层调用last_insert_id()也是不会返回结果的。如果使用这个功能， 则最好配合数据库模式的全局序列。使用 autoIncrement="true" 指定该表使用自增长主键,这样MyCat才不会抛出 "分片键找不到" 的异常。 autoIncrement的默认值为false|
+|needAddLimit|boolean|指定表是否需要自动在每个语句的后面加上limit限制, 默认为true。|
+
+
+* dataNode 标签
+dataNode标签中定义了MyCat中的数据节点, 也就是我们通常说的数据分片。一个dataNode标签就
+是一个独立的数据分片。
+具体的属性 ：
+
+|属性|含义|描述|
+| ---- | ---- | ---- |
+|name|数据节点的名称|需要唯一 ; 在table标签中会引用这个名字, 标识表与分片的对应关系|
+|dataHost|数据库实例主机名称|引用自 dataHost 标签中name属性|
+|database|定义分片所属的数据库||
+
+
+
+* dataHost 标签
+
+该标签在MyCat逻辑库中作为底层标签存在, 直接定义了具体的数据库实例、读写分离、心跳语句。
+```xml
+	<dataHost name="localhost1" maxCon="1000" minCon="10" balance="0"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<!-- can have multi write hosts -->
+		<writeHost host="hostM1" url="192.168.0.104:3307" user="root"
+				   password="root@123">
+		</writeHost>
+		<!-- <writeHost host="hostM2" url="localhost:3316" user="root" password="123456"/> -->
+	</dataHost>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
