@@ -338,4 +338,65 @@ mysql> /*!mycat:dataNode=dn3*/select *from tb_user;
 +----+----------+--------+
 1 row in set (0.00 sec)
 ```
+* 范围求模算法
+该算法为先进行范围分片，计算出分片组，在进行组内求模。
+优点：综合了范围分片和求模分片的优点。分片组内使用求模可以保证组内的数据分布比较均匀，分盘组之间采用了范围分片可以兼顾范围分片的特点。
+缺点:存在数据范围时固定值(非递增值)时，存在不方便扩展的情况，例如dataNode Group size从2扩展为4时，需要进行数据迁移才可以万恒；
+![范围求模算法](./files\范围求模分片.PNG)
+
+在上述配置文件中, 等号前面的范围代表一个分片组 , 等号后面的数字代表该分片组所拥有的分片数
+量;
+
+rule.xml
+```xml
+<tableRule name="auto-sharding-rang-mod">
+	<rule>
+		<columns>id</columns>
+		<algorithm>rang-mod</algorithm>
+	</rule>
+</tableRule>
+
+<function name="rang-mod" class="io.mycat.route.function.PartitionByRangeMod">
+  <property name="mapFile">partition-range-mod.txt</property>
+</function>
+```
+
+[范围求模](./files\partition-range-mod.txt)
+```text
+0-500M=1 # 0~500万存放在第一个节点
+500M1-2000M=2 # 500万零1粗放在后面两个结点，取模存储
+```
+schema.xml文件配置
+```xml
+<table name="tb_stu" dataNode="dn1,dn2,dn3" rule="auto-sharding-rang-mod"/>
+```
+sql脚本的
+```sql
+mysql> CREATE TABLE `tb_stu` (
+    -> id bigint(20) NOT NULL COMMENT 'ID',
+    -> username varchar(200) DEFAULT NULL COMMENT '姓名',
+    -> status int(2) DEFAULT '1' COMMENT '1: 未启用, 2: 已启用, 3: 已关闭',
+    -> PRIMARY KEY (`id`)
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+mysql> insert into tb_stu (id,username ,status) values(1,'Tom',1);
+mysql> insert into tb_stu (id,username ,status) values(2,'Cat',2);
+mysql> insert into tb_stu (id,username ,status) values(3,'Rose',3);
+mysql> insert into tb_stu (id,username ,status) values(4,'Coco',2);
+mysql> insert into tb_stu (id,username ,status) values(5,'Lily',1);
+mysql> insert into tb_stu (id,username ,status) values(5000001,'Roce',1);
+mysql> insert into tb_stu (id,username ,status) values(5000002,'Jexi',2);
+mysql> insert into tb_stu (id,username ,status) values(5000003,'Mini',1);
+```
+执行结果
+
+![执行结果](./files\范围取模分片-1.PNG)
+
 * 
+
+
+
+
+
+
+
+
