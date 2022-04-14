@@ -502,5 +502,229 @@ mysql> /*!mycat:dataNode=dn3*/select *from tb_brand;
 +------+--------+-----------+
 2 rows in set (0.00 sec)
 ```
+* 取模范围算法
+该算法先进行取模，然后根据取模值所属的范围进行分片。
+优点：可以自主决定取模后数据的结点分布
+缺点：dataNode划分节点时实现建好的，需要扩展就比较麻烦
+rule.xml的配置如下:
+```xml
+<tableRule name="sharding-by-pattern">
+		<rule>
+		<columns>id</columns>
+		<algorithm>sharding-by-pattern</algorithm>
+		</rule>
+	</tableRule>
+	<function name="sharding-by-pattern" class="io.mycat.route.function.PartitionByPattern">
+		<property name="mapFile">partition-pattern.txt</property>
+		<property name="defaultNode">0</property>
+		<property name="patternValue">96</property>
+	</function>
+```
+
+|属性|描述|
+| ---- | ---- |
+|columns|标识将要分片的表字段|
+|algorithm|指定分片函数与function的对应关系|
+|class|指定分片算法的类|
+|mapFile|对应的外部配置文件|
+|defaultNode|默认结点，如果id不是数字无法求模，将分配到defaultNode上|
+|patternValue|求模基数|
+
+schema.xml
+```xml
+	<table name="tb_mod_range" dataNode="dn1,dn2,dn3" rule="sharding-by-pattern"/>
+```
+重启mycat即可生效了
+sql脚本
+```sql
+
+mysql> CREATE TABLE `tb_mod_range` (
+    -> id int(11) NOT NULL COMMENT 'ID',
+    -> name varchar(200) DEFAULT NULL COMMENT '名称',
+    -> PRIMARY KEY (`id`)
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+mysql> insert into tb_mod_range (id,name) values(1,'Test1');
+mysql> insert into tb_mod_range (id,name) values(2,'Test2');
+mysql> insert into tb_mod_range (id,name) values(3,'Test3');
+mysql> insert into tb_mod_range (id,name) values(4,'Test4');
+mysql> insert into tb_mod_range (id,name) values(5,'Test5');
+mysql> show tables;
++-------------------+
+| Tables in log_db  |
++-------------------+
+| partition_rang_tb |
+| tb_brand          |
+| tb_log            |
+| tb_mod_range      |
+| tb_stu            |
+| tb_user           |
++-------------------+
+6 rows in set (0.01 sec)
+mysql> select *from tb_mod_range;
++----+-------+
+| id | name  |
++----+-------+
+|  1 | Test1 |
+|  2 | Test2 |
+|  3 | Test3 |
+|  4 | Test4 |
+|  5 | Test5 |
++----+-------+
+5 rows in set (0.04 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tn_mod_range;
+ERROR 1146 (HY000): Table 'log_db.tn_mod_range' doesn't exist
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++----+-------+
+| id | name  |
++----+-------+
+|  1 | Test1 |
+|  2 | Test2 |
+|  3 | Test3 |
+|  4 | Test4 |
+|  5 | Test5 |
++----+-------+
+5 rows in set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn2*/select *from tb_mod_range;
+Empty set (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_mod_range;
+Empty set (0.00 sec)
+
+mysql> insert into tb_mod_range (id,name) values(97,'Test97');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into tb_mod_range (id,name) values(98,'Test97');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_mod_range;
+Empty set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn2*/select *from tb_mod_range;
+Empty set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++----+--------+
+| id | name   |
++----+--------+
+|  1 | Test1  |
+|  2 | Test2  |
+|  3 | Test3  |
+|  4 | Test4  |
+|  5 | Test5  |
+| 97 | Test97 |
+| 98 | Test97 |
++----+--------+
+7 rows in set (0.00 sec)
+
+mysql> insert into tb_mod_range (id,name) values(99,'Test99');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++----+--------+
+| id | name   |
++----+--------+
+|  1 | Test1  |
+|  2 | Test2  |
+|  3 | Test3  |
+|  4 | Test4  |
+|  5 | Test5  |
+| 97 | Test97 |
+| 98 | Test97 |
+| 99 | Test99 |
++----+--------+
+8 rows in set (0.00 sec)
+
+mysql> insert into tb_mod_range (id,name) values(100,'Test100');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++-----+---------+
+| id  | name    |
++-----+---------+
+|   1 | Test1   |
+|   2 | Test2   |
+|   3 | Test3   |
+|   4 | Test4   |
+|   5 | Test5   |
+|  97 | Test97  |
+|  98 | Test97  |
+|  99 | Test99  |
+| 100 | Test100 |
++-----+---------+
+9 rows in set (0.00 sec)
+
+mysql> insert into tb_mod_range (id,name) values(199,'Test199');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++-----+---------+
+| id  | name    |
++-----+---------+
+|   1 | Test1   |
+|   2 | Test2   |
+|   3 | Test3   |
+|   4 | Test4   |
+|   5 | Test5   |
+|  97 | Test97  |
+|  98 | Test97  |
+|  99 | Test99  |
+| 100 | Test100 |
+| 199 | Test199 |
++-----+---------+
+10 rows in set (0.12 sec)
+
+mysql> insert into tb_mod_range (id,name) values(10001,'Test10000');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++-------+-----------+
+| id    | name      |
++-------+-----------+
+|     1 | Test1     |
+|     2 | Test2     |
+|     3 | Test3     |
+|     4 | Test4     |
+|     5 | Test5     |
+|    97 | Test97    |
+|    98 | Test97    |
+|    99 | Test99    |
+|   100 | Test100   |
+|   199 | Test199   |
+| 10001 | Test10000 |
++-------+-----------+
+11 rows in set (0.00 sec)
+
+mysql> insert into tb_mod_range (id,name) values(92,'Test92');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_mod_range;
++-------+-----------+
+| id    | name      |
++-------+-----------+
+|     1 | Test1     |
+|     2 | Test2     |
+|     3 | Test3     |
+|     4 | Test4     |
+|     5 | Test5     |
+|    97 | Test97    |
+|    98 | Test97    |
+|    99 | Test99    |
+|   100 | Test100   |
+|   199 | Test199   |
+| 10001 | Test10000 |
++-------+-----------+
+11 rows in set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_mod_range;
++----+--------+
+| id | name   |
++----+--------+
+| 92 | Test92 |
++----+--------+
+1 row in set (0.00 sec)
+```
+
 
 
