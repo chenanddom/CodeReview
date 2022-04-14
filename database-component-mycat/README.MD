@@ -527,8 +527,110 @@ tb_areas_provinces、tb_areas_region表
 
 ![关联查询](./files\全局表解决关联查询.PNG)
 
+### 水平分片和取模分片
+schema.xml的修改如下:
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+	
+	<schema name="log_db" checkSQLschema="false" sqlMaxLimit="100">
+	<table name="tb_log" dataNode="dn1,dn2,dn3" primaryKey="id" rule="mod-long"/>
+	</schema>
+		<dataNode name="dn1" dataHost="dh1" database="log_db" />
+		<dataNode name="dn2" dataHost="dh1" database="log_db2" />
+		<dataNode name="dn3" dataHost="dh1" database="log_db3" />
+		
+	<dataHost name="dh1" maxCon="1000" minCon="10" balance="0"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<!-- can have multi write hosts -->
+		<writeHost host="hostM1" url="192.168.1.104:3307" user="test"
+				   password="test@123">
+		</writeHost>
+	</dataHost>
+</mycat:schema>
+```
+server.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mycat:server SYSTEM "server.dtd">
+<mycat:server xmlns:mycat="http://io.mycat/">
+	<system>
+	<property name="nonePasswordLogin">0</property> <!-- 0为需要密码登陆、1为不需要密码登陆 ,默认为0，设置为1则需要指定默认账户-->
+	<property name="useHandshakeV10">1</property>
+	<property name="useSqlStat">1</property>  <!-- 1为开启实时统计、0为关闭 -->
+	<property name="useGlobleTableCheck">0</property>  <!-- 1为开启全加班一致性检测、0为关闭 -->
+		<property name="sqlExecuteTimeout">300</property>  <!-- SQL 执行超时 单位:秒-->
+		<property name="sequnceHandlerType">2</property>
+		<property name="sequnceHandlerPattern">(?:(\s*next\s+value\s+for\s*MYCATSEQ_(\w+))(,|\)|\s)*)+</property>
+	<property name="subqueryRelationshipCheck">false</property> <!-- 子查询中存在关联查询的情况下,检查关联字段中是否有分片字段 .默认 false -->
+		<property name="processorBufferPoolType">0</property>
+		<property name="handleDistributedTransactions">0</property>
+		<property name="useOffHeapForMerge">0</property>
+        <property name="memoryPageSize">64k</property>
+		<property name="spillsFileBufferSize">1k</property>
+		<property name="useStreamOutput">0</property>
+		<property name="systemReserveMemorySize">384m</property>
+		<property name="useZKSwitch">false</property>
+		<property name="strictTxIsolation">false</property>
+		<property name="useZKSwitch">true</property>
+	</system>
+	<user name="root" defaultAccount="true">
+		<property name="password">kOdSW+qrXfdYoa+qhNBZVARSxlhCZFS+PwP2NTzKYtb8rOntlZa+XFfxUPgE+3spkNpZgiNlDonoI1zz6OGwcg==</property>
+		<property name="schemas">log_db</property>
+		<property name="usingDecrypt">1</property>
+	</user>
+	<user name="user">
+		<property name="password">test123</property>
+		<property name="schemas">log_db</property>
+		<property name="readOnly">true</property>
+	</user>
+</mycat:server>
+```
+执行以下的脚本重启mycat
+```shell script
+./bin/mycat restart
+```
+登录mycat并切换到log_db
+```sql
+CREATE TABLE `tb_log` (
+`id` bigint(20) NOT NULL COMMENT 'ID',
+`model_name` varchar(200) DEFAULT NULL COMMENT '模块名',
+`model_value` varchar(200) DEFAULT NULL COMMENT '模块值',
+`return_value` varchar(200) DEFAULT NULL COMMENT '返回值',
+`return_class` varchar(200) DEFAULT NULL COMMENT '返回值类型',
+`operate_user` varchar(20) DEFAULT NULL COMMENT '操作用户',
+`operate_time` varchar(20) DEFAULT NULL COMMENT '操作时间',
+`param_and_value` varchar(500) DEFAULT NULL COMMENT '请求参数名及参数值',
+`operate_class` varchar(200) DEFAULT NULL COMMENT '操作类',
+`operate_method` varchar(200) DEFAULT NULL COMMENT '操作方法',
+`cost_time` bigint(20) DEFAULT NULL COMMENT '执行方法耗时, 单位 ms',
+`source` int(1) DEFAULT NULL COMMENT '来源 : 1 PC , 2 Android , 3 IOS',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- 添加数据的脚本
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('1','user','insert','success','java.lang.String','10001','2020-02-2618:12:28','{\"age\":\"20\",\"name\":\"Tom\",\"gender\":\"1\"}','cn.itcast.controller.UserController','insert','10',1);
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('2','user','insert','success','java.lang.String','10001','2020-02-2618:12:27','{\"age\":\"20\",\"name\":\"Tom\",\"gender\":\"1\"}','cn.itcast.controller.UserController','insert','23',1);
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('3','user','update','success','java.lang.String','10001','2020-02-2618:16:45','{\"age\":\"20\",\"name\":\"Tom\",\"gender\":\"1\"}','cn.itcast.controller.UserController','update','34',1);
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('4','user','update','success','java.lang.String','10001','2020-02-2618:16:45','{\"age\":\"20\",\"name\":\"Tom\",\"gender\":\"1\"}','cn.itcast.controller.UserController','update','13',2);
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('5','user','insert','success','java.lang.String','10001','2020-02-2618:30:31','{\"age\":\"200\",\"name\":\"TomCat\",\"gender\":\"0\"}','cn.itcast.controller.UserController','insert','29',3);
+INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_class`, `operate_user`, `operate_time`, `param_and_value`,`operate_class`, `operate_method`, `cost_time`，`source`)VALUES('6','user','find','success','java.lang.String','10001','2020-02-2618:30:31','{\"age\":\"200\",\"name\":\"TomCat\",\"gender\":\"0\"}','cn.itcast.controller.UserController','find','29',2);
+-- 查询每个物理结点的数据脚本
+ /*!mycat:dataNode=dn1*/select * from tb_log;
+ /*!mycat:dataNode=dn2*/select * from tb_log;
+ /*!mycat:dataNode=dn3*/select * from tb_log;
+```
+执行脚本的效果：
+![执行脚本的效果](./files\水平分片和取模规则的使用.PNG)
+
 
 ### 分片规则
+
+* 取模分片
+
+
+
 
 
 
