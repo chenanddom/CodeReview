@@ -624,13 +624,85 @@ INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_
 执行脚本的效果：
 ![执行脚本的效果](./files\水平分片和取模规则的使用.PNG)
 
+* 范围分片
+根据指定的字段及其配置的范围于数据结点的对应的情况，来决定该数据属于哪一个分片，配置如下:
+```xml
+	
+	<schema name="log_db" checkSQLschema="false" sqlMaxLimit="100">
+	<!-- 范围分片 -->
+	<table name="partition_rang_tb" dataNode="dn1,dn2,dn3" primaryKey="id" rule="auto-sharding-long"/>
+	</schema>
 
-### 分片规则
 
-* 取模分片
+<tableRule name="auto-sharding-long">
+		<rule>
+			<columns>id</columns>
+			<algorithm>rang-long</algorithm>
+		</rule>
+	</tableRule>
+
+	<function name="rang-long"
+		class="io.mycat.route.function.AutoPartitionByLong">
+		<property name="mapFile">autopartition-long.txt</property>
+	</function>
+```
+
+|属性|描述|
+| ---- | ---- |
+|columns|标识将要分片的表字段|
+|algorithm|指定分片函数于function的对应关系|
+|class|指定该分片算法对应的类|
+|mapFile|对应的外部配置文件|
+|type|默认值为0;0标识Integer,1标识string|
+|defaultNode|默认结点，默认系欸点的所用:美剧分片时，如果碰到不识别的枚举值，就让它路由到默认结点，如果没有默认值，碰到不知别的则报错|
 
 
+autopartition-long.txt配置如下：
+```text
+# range start-end ,data node index
+# K=1000,M=10000.
+0-500M=0 # 0-500w范围在1号分片
+500M-1000M=1 #500w-1000w的范围的在2号分片
+1000M-1500M=2 #1000w-1500w的范围在3号分片
+```
 
+执行的脚本如下:
+```sql
+mysql> CREATE TABLE `partition_rang_tb` (
+    -> id bigint(20) NOT NULL COMMENT 'ID',
+    -> operateuser varchar(200) DEFAULT NULL COMMENT '姓名',
+    -> operation int(2) DEFAULT NULL COMMENT '1: insert, 2: delete, 3: update , 4:
+    '> select',
+    -> PRIMARY KEY (`id`)
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+mysql>
+mysql> insert into partition_rang_tb(id,operateuser ,operation) values(1,'Tom',1);
+mysql> insert into partition_rang_tb(id,operateuser ,operation) values(2,'Cat',2);
+mysql> insert into partition_rang_tb(id,operateuser ,operation) values(3,'Rose',3);
+mysql> insert into partition_rang_tb(id,operateuser ,operation) values(4,'Coco',2);
+mysql> insert into partition_rang_tb(id,operateuser ,operation) values(5,'Lily',1);
+mysql> /*!mycat:dataNode=dn1*/select *from partition_rang_tb;
++----+-------------+-----------+
+| id | operateuser | operation |
++----+-------------+-----------+
+|  1 | Tom         |         1 |
+|  2 | Cat         |         2 |
+|  3 | Rose        |         3 |
+|  4 | Coco        |         2 |
+|  5 | Lily        |         1 |
++----+-------------+-----------+
+5 rows in set (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn2*/select *from partition_rang_tb;
+Empty set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from partition_rang_tb;
+Empty set (0.01 sec)
+```
+由上图可以知道，插入的数据都在数据结点1里面
+
+
+![范围分片](./files\范围分片-1.PNG)
 
 
 
