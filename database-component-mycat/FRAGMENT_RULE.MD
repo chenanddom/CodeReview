@@ -196,6 +196,7 @@ INSERT INTO `tb_log` (`id`, `model_name`, `model_value`, `return_value`,`return_
 
 
 autopartition-long.txt配置如下：
+
 ```text
 # range start-end ,data node index
 # K=1000,M=10000.
@@ -391,12 +392,115 @@ mysql> insert into tb_stu (id,username ,status) values(5000003,'Mini',1);
 
 ![执行结果](./files\范围取模分片-1.PNG)
 
-* 
+* 固定分片hash算法
+ 该算法类似于十进制的求模算法，但是为二级制的操作，例如，去id的二进制低10位与1111111111进行&运算
+ 最小值
+0 0 0 0 0 0 0 0 0 0
+&
+1 1 1 1 1 1 1 1 1 1
+———————————————————————
+0 0 0 0 0 0 0 0 0 0     =0
 
+最大值
+1 1 1 1 1 1 1 1 1 1
+& 
+1 1 1 1 1 1 1 1 1 1 
+———————————————————————
+1 1 1 1 1 1 1 1 1 1    =1023
+优点：这种策略比较灵活，可以均匀的分配也可以非均匀的分配，各个节点的分配比例和容量大小由partitionCount和partitionLength两个参数决定
+缺点： 和取模分片一样扩容需要进行数据的迁移
 
+rule.xml的配置如下:
+```xml
+	<tableRule name="sharding-by-long-hash">
+		<rule>
+			<columns>id</columns>
+			<algorithm>fixed-hash</algorithm>
+		</rule>
+	</tableRule>
 
+	<function name="fixed-hash" class="io.mycat.route.function.PartitionByLong">
+		<property name="partitionCount">1,2</property>
+		<property name="partitionLength">256,512</property>
+	</function
+<!--在示例中配置的分片策略，希望将数据水平分成3份，前两份各占 25%，第三份占 50%。-->
 
+```
+约束 :
+1). 分片长度 : 默认最大2^10 , 为 1024 ;
+2). count, length的数组长度必须是一致的 ;
+3). 两组数据的对应情况: (partitionCount[0]partitionLength[0])=
+(partitionCount[1]partitionLength[1])
+以上分为三个分区:0-255,256-511,512-1023
 
+schema.xml的配置如下:
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://io.mycat/">
+	<schema name="log_db" checkSQLschema="false" sqlMaxLimit="100">
+	<table name="tb_log" dataNode="dn1,dn2,dn3" primaryKey="id" rule="mod-long"/>
+	<table name="partition_rang_tb" dataNode="dn1,dn2,dn3" primaryKey="id" rule="auto-sharding-long"/>
+	<table name="tb_user" dataNode="dn1,dn2,dn3" rule="sharding-by-enum-status"/>
+	<table name="tb_stu" dataNode="dn1,dn2,dn3" rule="auto-sharding-rang-mod"/>
+	<table name="tb_brand" dataNode="dn1,dn2,dn3" rule="sharding-by-long-hash"/>
+	</schema>
+		<dataNode name="dn1" dataHost="dh1" database="log_db" />
+		<dataNode name="dn2" dataHost="dh1" database="log_db2" />
+		<dataNode name="dn3" dataHost="dh1" database="log_db3" />
+	<dataHost name="dh1" maxCon="1000" minCon="10" balance="0"
+			  writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<writeHost host="hostM1" url="192.168.0.104:3307" user="root"
+				   password="root@123">
+		</writeHost>
+	</dataHost>
+</mycat:schema>
+```
+```sql
+mysql> CREATE TABLE `tb_brand` (
+    -> id int(11) NOT NULL COMMENT 'ID',
+    -> name varchar(200) DEFAULT NULL COMMENT '名称',
+    -> firstChar char(1) COMMENT '首字母',
+    -> PRIMARY KEY (`id`)
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+Query OK, 0 rows affected (0.15 sec)
 
+mysql> insert into tb_brand (id,name ,firstChar) values(1,'七匹狼','Q');
+mysql> insert into tb_brand (id,name ,firstChar) values(529,'八匹狼','B');
+mysql>  insert into tb_brand (id,name ,firstChar) values(1203,'九匹狼','J');
+mysql> insert into tb_brand (id,name ,firstChar) values(1205,'十匹狼','S');
+mysql> insert into tb_brand (id,name ,firstChar) values(1719,'六匹狼','L');
+mysql> select *from tb_brand;
++------+--------+-----------+
+| id   | name   | firstChar |
++------+--------+-----------+
+|    1 | 七匹狼 | Q         |
+| 1203 | 九匹狼 | J         |
+| 1205 | 十匹狼 | S         |
+|  529 | 八匹狼 | B         |
+| 1719 | 六匹狼 | L         |
++------+--------+-----------+
+5 rows in set (0.11 sec)
+mysql> /*!mycat:dataNode=dn1*/select *from tb_brand;
++------+--------+-----------+
+| id   | name   | firstChar |
++------+--------+-----------+
+|    1 | 七匹狼 | Q         |
+| 1203 | 九匹狼 | J         |
+| 1205 | 十匹狼 | S         |
++------+--------+-----------+
+3 rows in set (0.02 sec)
+mysql> /*!mycat:dataNode=dn2*/select *from tb_brand;
+Empty set (0.00 sec)
+mysql> /*!mycat:dataNode=dn3*/select *from tb_brand;
++------+--------+-----------+
+| id   | name   | firstChar |
++------+--------+-----------+
+|  529 | 八匹狼 | B         |
+| 1719 | 六匹狼 | L         |
++------+--------+-----------+
+2 rows in set (0.00 sec)
+```
 
 
