@@ -930,5 +930,111 @@ Empty set (0.00 sec)
 
 
 
+* 一致性hash算法
+一致性Hash算法有效的解决了分布式数据的拓容问题，配置如下:
+rule.xml
+```xml
+	<tableRule name="sharding-by-stringhash">
+		<rule>
+			<columns>name</columns>
+			<algorithm>sharding-by-stringhash2</algorithm>
+		</rule>
+	</tableRule>
+	<function name="murmur"
+		class="io.mycat.route.function.PartitionByMurmurHash">
+		<property name="seed">0</property><!-- 默认是0 -->
+		<property name="count">3</property><!-- 要分片的数据库节点数量，必须指定，否则没法分片 -->
+		<property name="virtualBucketTimes">160</property><!-- 一个实际的数据库节点被映射为这么多虚拟节点，默认是160倍，也就是虚拟节点数是物理节点数的160倍 -->
+		<!-- <property name="weightMapFile">weightMapFile</property> 节点的权重，没有指定权重的节点默认是1。以properties文件的格式填写，以从0开始到count-1的整数值也就是节点索引为key，以节点权重值为值。所有权重值必须是正整数，否则以1代替 -->
+		<!-- <property name="bucketMapPath">/etc/mycat/bucketMapPath</property> 
+			用于测试时观察各物理节点与虚拟节点的分布情况，如果指定了这个属性，会把虚拟节点的murmur hash值与物理节点的映射按行输出到这个文件，没有默认值，如果不指定，就不会输出任何东西 -->
+	</function>
+	
+```
+schema.xml
+```xml
+	<table name="tb_strhash" dataNode="dn1,dn2,dn3" rule="sharding-by-stringhash"/>
+```
+执行脚本
+```sql
+create table tb_order(
+id int(11) primary key,
+money int(11),
+content varchar(200)
+)engine=InnoDB ;
+2). 插入数据
+INSERT INTO tb_order (id,money,content) VALUES(1, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(212, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(312, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(412, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(534, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(621, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(754563, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(8123, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(91213, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(23232, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(112321, 100 , UUID());
+INSERT INTO tb_order (id,money,content) VALUES(21221, 100 , UUID());
+```
+执行查询的sql
+```sql
+mysql> select *from tb_order;
++--------+-------+--------------------------------------+
+| id     | money | content                              |
++--------+-------+--------------------------------------+
+|    412 |   100 | 902d8518-bc57-11ec-8543-aced5c5877c6 |
+|    621 |   100 | 902fdca4-bc57-11ec-8543-aced5c5877c6 |
+|  12132 |   100 | 942b6a97-bc57-11ec-8543-aced5c5877c6 |
+|      1 |   100 | 9028c109-bc57-11ec-8543-aced5c5877c6 |
+|    212 |   100 | 902ae2d0-bc57-11ec-8543-aced5c5877c6 |
+|    312 |   100 | 902c3a16-bc57-11ec-8543-aced5c5877c6 |
+|    534 |   100 | 902e5966-bc57-11ec-8543-aced5c5877c6 |
+|   8123 |   100 | 9031de3e-bc57-11ec-8543-aced5c5877c6 |
+|  21221 |   100 | 90f08112-bc57-11ec-8543-aced5c5877c6 |
+|  91213 |   100 | 9034421c-bc57-11ec-8543-aced5c5877c6 |
+| 212132 |   100 | 9491d60f-bc57-11ec-8543-aced5c5877c6 |
+|  23232 |   100 | 90365de7-bc57-11ec-8543-aced5c5877c6 |
+| 112132 |   100 | 942890f3-bc57-11ec-8543-aced5c5877c6 |
+| 112321 |   100 | 9039b23d-bc57-11ec-8543-aced5c5877c6 |
+| 124321 |   100 | 942d00d2-bc57-11ec-8543-aced5c5877c6 |
+| 754563 |   100 | 9030f69f-bc57-11ec-8543-aced5c5877c6 |
++--------+-------+--------------------------------------+
+16 rows in set (0.03 sec)
 
+mysql> /*!mycat:dataNode=dn1*/select *from tb_order;
++-------+-------+--------------------------------------+
+| id    | money | content                              |
++-------+-------+--------------------------------------+
+|   412 |   100 | 902d8518-bc57-11ec-8543-aced5c5877c6 |
+|   621 |   100 | 902fdca4-bc57-11ec-8543-aced5c5877c6 |
+| 12132 |   100 | 942b6a97-bc57-11ec-8543-aced5c5877c6 |
++-------+-------+--------------------------------------+
+3 rows in set (0.01 sec)
 
+mysql> /*!mycat:dataNode=dn2*/select *from tb_order;
++--------+-------+--------------------------------------+
+| id     | money | content                              |
++--------+-------+--------------------------------------+
+|      1 |   100 | 9028c109-bc57-11ec-8543-aced5c5877c6 |
+|    212 |   100 | 902ae2d0-bc57-11ec-8543-aced5c5877c6 |
+|    312 |   100 | 902c3a16-bc57-11ec-8543-aced5c5877c6 |
+|    534 |   100 | 902e5966-bc57-11ec-8543-aced5c5877c6 |
+|   8123 |   100 | 9031de3e-bc57-11ec-8543-aced5c5877c6 |
+|  21221 |   100 | 90f08112-bc57-11ec-8543-aced5c5877c6 |
+|  91213 |   100 | 9034421c-bc57-11ec-8543-aced5c5877c6 |
+| 212132 |   100 | 9491d60f-bc57-11ec-8543-aced5c5877c6 |
++--------+-------+--------------------------------------+
+8 rows in set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_order;
++--------+-------+--------------------------------------+
+| id     | money | content                              |
++--------+-------+--------------------------------------+
+|  23232 |   100 | 90365de7-bc57-11ec-8543-aced5c5877c6 |
+| 112132 |   100 | 942890f3-bc57-11ec-8543-aced5c5877c6 |
+| 112321 |   100 | 9039b23d-bc57-11ec-8543-aced5c5877c6 |
+| 124321 |   100 | 942d00d2-bc57-11ec-8543-aced5c5877c6 |
+| 754563 |   100 | 9030f69f-bc57-11ec-8543-aced5c5877c6 |
++--------+-------+--------------------------------------+
+5 rows in set (0.00 sec)
+```
