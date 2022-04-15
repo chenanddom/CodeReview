@@ -726,5 +726,117 @@ mysql> /*!mycat:dataNode=dn3*/select *from tb_mod_range;
 1 row in set (0.00 sec)
 ```
 
+* 字符串hash求模分片算法
+与求模算法类似，该算法支持数值，符好，字母取模，首截取长度为prefixLength的子串，在对子串中每一个字符的ASCII码求和，然后对求和值进行取模运算。
+(sum%patternValue)，就可以计算出子串的分片数
+优点：可以自主决定取模后数据的节点分布
+缺点:dataNode划分系欸但是实现建好的，需要扩展时比较麻烦
+
+rule.xml
+```xml
+	
+	<tableRule name="sharding-by-prefixpattern2">
+		<rule>
+		<columns>username</columns>
+		<algorithm>sharding-by-prefixpattern</algorithm>
+		</rule>
+	</tableRule>
+	
+	
+	<function name="sharding-by-prefixpattern" class="io.mycat.route.function.PartitionByPrefixPattern">
+		<property name="mapFile">partition-prefixpattern.txt</property>
+		<property name="prefixLength">5</property>
+		<property name="patternValue">96</property>
+	</function>
+```
+
+schema.xml
+```xml
+	<table name="tb_app" dataNode="dn1,dn2,dn3" rule="sharding-by-prefixpattern2"/>
+```
+
+sql
+```sql
+CREATE TABLE `tb_app` (
+id varchar(10) NOT NULL COMMENT 'ID',
+name varchar(200) DEFAULT NULL COMMENT '名称',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+insert into tb_app (id,name) values('00-00001','Testx00001');
+insert into tb_app (id,name) values('01-00001','Test100001');
+insert into tb_app (id,name) values('01-00002','Test200001');
+```
 
 
+
+* 应用指定算法
+由运行阶段应用自主决定路由到那个分片，直接根据字符子串(必须时数字)计算分片号，配置如下：
+rule.xml
+```xml
+	<function name="sharding-by-substring" class="io.mycat.route.function.PartitionDirectBySubString">
+		<!--字符串起始索引-->
+		<property name="startIndex">0</property> <!-- zero-based -->
+		<!--字符长度-->
+		<property name="size">2</property>
+		<!--分片的数量-->
+		<property name="partitionCount">3</property>
+		<property name="defaultPartition">0</property>
+	</function>
+	<function name="sharding-by-prefixpattern" class="io.mycat.route.function.PartitionByPrefixPattern">
+		<property name="mapFile">partition-prefixpattern.txt</property>
+		<property name="prefixLength">5</property>
+		<!--取模基础值-->
+		<property name="patternValue">96</property>
+	</function>
+```
+schema.xml
+```xml
+	<table name="tb_app" dataNode="dn1,dn2,dn3" rule="sharding-by-substring"/>
+```
+
+重启mycat然后到log_db数据库就可以查看到逻辑表tb_app
+
+```sql
+mysql> CREATE TABLE `tb_app` (
+    -> id varchar(10) NOT NULL COMMENT 'ID',
+    -> name varchar(200) DEFAULT NULL COMMENT '名称',
+    -> PRIMARY KEY (`id`)
+    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+mysql> insert into tb_app (id,name) values('00-00001','Testx00001');
+mysql> insert into tb_app (id,name) values('01-00001','Test100001');
+mysql> insert into tb_app (id,name) values('01-00002','Test200001');
+mysql> insert into tb_app (id,name) values('02-00001','Test300001');
+mysql> insert into tb_app (id,name) values('02-00002','TesT400001');
+mysql> /**/select *from tb_app;
++----------+------------+
+| id       | name       |
++----------+------------+
+| 00-00001 | Testx00001 |
+| 01-00001 | Test100001 |
+| 01-00002 | Test200001 |
+| 02-00001 | Test300001 |
+| 02-00002 | TesT400001 |
++----------+------------+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_app;
++----------+------------+
+| id       | name       |
++----------+------------+
+| 00-00001 | Testx00001 |
++----------+------------+
+mysql> /*!mycat:dataNode=dn2*/select *from tb_app;
++----------+------------+
+| id       | name       |
++----------+------------+
+| 01-00001 | Test100001 |
+| 01-00002 | Test200001 |
++----------+------------+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_app;
++----------+------------+
+| id       | name       |
++----------+------------+
+| 02-00001 | Test300001 |
+| 02-00002 | TesT400001 |
++----------+------------+
+```
+* 
