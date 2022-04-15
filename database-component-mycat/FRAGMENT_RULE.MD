@@ -1038,3 +1038,95 @@ mysql> /*!mycat:dataNode=dn3*/select *from tb_order;
 +--------+-------+--------------------------------------+
 5 rows in set (0.00 sec)
 ```
+
+
+* 日期分片算法
+rule.xml
+```xml
+<tableRule name="sharding-by-date">
+<rule>
+<columns>create_time</columns>
+<algorithm>sharding-by-date</algorithm>
+</rule>
+</tableRule>
+<function name="sharding-by-date"
+class="io.mycat.route.function.PartitionByDate">
+<property name="dateFormat">yyyy-MM-dd</property>
+<property name="sBeginDate">2020-01-01</property>
+<property name="sEndDate">2020-12-31</property>
+<property name="sPartionDay">10</property>
+</function>
+```
+|属性|描述|
+| ---- | ---- |
+|dateFormat|日期格式|
+|sBeginDate|开始日期|
+|sEndDate|结束日期，如果配置了结束日期，则代码数到达了这个日期的分片之后，会重复开始分片插入|
+|sPartitionDay|分区天数。默认值10，从开始日期算起，每10一个分期|
+
+注意：配置规则的表的 dataNode 的分片，必须和分片规则数量一致，例如 2020-01-01 到
+2020-12-31 ，每10天一个分片，一共需要37个分片。
+
+* 单月小时算法
+单月内按照小时拆分，最小粒度时小时，一条最多可以由24个分片，最小1个分片，下个月从头开始循环，每个月末需要手动清理数据
+rule.xml
+```xml
+<tableRule name="sharding-by-hour">
+<rule>
+<columns>create_time</columns>
+<algorithm>sharding-by-hour</algorithm>
+</rule>
+</tableRule>
+<function name="sharding-by-hour"
+class="io.mycat.route.function.LatestMonthPartion">
+<property name="splitOneDay">24</property>
+</function>
+```
+|属性|描述|
+| ---- | ---- |
+|splitOneDay |一天切分的分片数|
+
+
+*　自然月分片算法
+使用场景为按照月份分区，每个自然月一个分片，配置如下：
+rule.xml
+```xml
+<tableRule name="sharding-by-month">
+<rule>
+<columns>create_time</columns>
+<algorithm>sharding-by-month</algorithm>
+</rule>
+</tableRule>
+<function name="sharding-by-month"
+class="io.mycat.route.function.PartitionByMonth">
+<property name="dateFormat">yyyy-MM-dd</property>
+<property name="sBeginDate">2020-01-01</property>
+<property name="sEndDate">2020-12-31</property>
+</function>
+```
+
+*　日期范围hash算法＼
+其四小和范围取模分片的思想时一样的，先根据日期进行范围分片求出分片组，再个奴家时间hash是的短期内数据分布的更加均匀；
+优点：可以避免扩容时数据迁移，又可以一定成都上避免范围分片的热点问题
+注意 : 要求日期格式尽量精确些，不然达不到局部均匀的目的
+
+rule.xml
+```xml
+<tableRule name="range-date-hash">
+<rule>
+<columns>create_time</columns>
+<algorithm>range-date-hash</algorithm>
+</rule>
+</tableRule>
+<function name="range-date-hash"
+class="io.mycat.route.function.PartitionByRangeDateHash">
+<property name="dateFormat">yyyy-MM-dd HH:mm:ss</property>
+<property name="sBeginDate">2020-01-01 00:00:00</property>
+<property name="groupPartionSize">6</property>
+<property name="sPartionDay">10</property>
+</function>
+```
+|属性|描述|
+| ---- | ---- |
+|groupPartitionSize|每组的分片的数量|
+|sPartionDay|代表多少天为1组|
