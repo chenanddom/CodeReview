@@ -839,4 +839,96 @@ mysql> /*!mycat:dataNode=dn3*/select *from tb_app;
 | 02-00002 | TesT400001 |
 +----------+------------+
 ```
-* 
+* 字符串hash解析算法分片
+截取字符串中的指定位置的子字符串，进行hash算法，算出分片，配置如下:
+rule.xml
+```xml
+<tableRule name="sharding-by-stringhash">
+		<rule>
+			<columns>name</columns>
+			<algorithm>sharding-by-stringhash2</algorithm>
+		</rule>
+	</tableRule>
+	<function name="sharding-by-stringhash2" class="io.mycat.route.function.PartitionByString">
+			<!--hash求模基础;length*count=1024(出于性能考虑)-->
+			<property name="partitionLength">512</property> <!-- zero-based -->
+			<!--分区数-->
+			<property name="partitionCount">2</property>
+			<!--hash运算位，根据子字符串的hash运算；0代表string.length()，-1代表str.length()-1，大于0只代表数字自身；可以理解为substring(start,end),start为0则只标识0-->
+			<property name="hashSlice">0:2</property>
+	</function>
+	
+```
+schema.xml
+```xml
+	<table name="tb_strhash" dataNode="dn1,dn2,dn3" rule="sharding-by-stringhash"/>
+```
+
+
+```sql
+mysql> create table tb_strhash(
+    -> name varchar(20) primary key,
+    -> content varchar(100)
+    -> )engine=InnoDB DEFAULT CHARSET=utf8mb4;
+Query OK, 0 rows affected (0.23 sec)
+mysql> INSERT INTO tb_strhash (name,content) VALUES('T1001', UUID());
+mysql> INSERT INTO tb_strhash (name,content) VALUES('ROSE', UUID());
+mysql> INSERT INTO tb_strhash (name,content) VALUES('JERRY', UUID());
+mysql> INSERT INTO tb_strhash (name,content) VALUES('CRISTINA', UUID());
+mysql> INSERT INTO tb_strhash (name,content) VALUES('TOMCAT', UUID());
+mysql> show tables;
++-------------------+
+| Tables in log_db  |
++-------------------+
+| partition_rang_tb |
+| tb_app            |
+| tb_brand          |
+| tb_log            |
+| tb_mod_range      |
+| tb_strhash        |
+| tb_stu            |
+| tb_u              |
+| tb_u2             |
+| tb_user           |
++-------------------+
+10 rows in set (0.01 sec)
+
+mysql> select *from tb_strhash;
++----------+--------------------------------------+
+| name     | content                              |
++----------+--------------------------------------+
+| CRISTINA | 26d2a91b-bc53-11ec-8543-aced5c5877c6 |
+| JERRY    | 26aed3a9-bc53-11ec-8543-aced5c5877c6 |
+| ROSE     | 26ac0a5d-bc53-11ec-8543-aced5c5877c6 |
+| T1001    | 26a9304a-bc53-11ec-8543-aced5c5877c6 |
+| TOMCAT   | 245f4650-bc53-11ec-8543-aced5c5877c6 |
++----------+--------------------------------------+
+5 rows in set (0.04 sec)
+
+mysql> /*!mycat:dataNode=dn1*/select *from tb_strhash;
++----------+--------------------------------------+
+| name     | content                              |
++----------+--------------------------------------+
+| CRISTINA | 26d2a91b-bc53-11ec-8543-aced5c5877c6 |
+| JERRY    | 26aed3a9-bc53-11ec-8543-aced5c5877c6 |
++----------+--------------------------------------+
+2 rows in set (0.01 sec)
+
+mysql> /*!mycat:dataNode=dn2*/select *from tb_strhash;
++--------+--------------------------------------+
+| name   | content                              |
++--------+--------------------------------------+
+| ROSE   | 26ac0a5d-bc53-11ec-8543-aced5c5877c6 |
+| T1001  | 26a9304a-bc53-11ec-8543-aced5c5877c6 |
+| TOMCAT | 245f4650-bc53-11ec-8543-aced5c5877c6 |
++--------+--------------------------------------+
+3 rows in set (0.00 sec)
+
+mysql> /*!mycat:dataNode=dn3*/select *from tb_strhash;
+Empty set (0.00 sec)
+```
+
+
+
+
+
