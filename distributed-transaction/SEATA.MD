@@ -16,6 +16,17 @@ Seata 将为用户提供了 AT、TCC、SAGA 和 XA 事务模式,SEATA主推AT模
         
     
     
+## SEATA的安装和使用
+
+### seata安装
+下载安装包seata-server-1.3.0.zip
+
+[安装包seata-server-1.3.0.zip](./files\seata-server-1.3.0.zip)
+
+
+
+
+
 
 
 
