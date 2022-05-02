@@ -191,6 +191,43 @@ public class StockController {
 
 ````
 
+配置文件：
+```yaml
+# 配置文件的优先级(优先级大的会覆盖优先级别小的，并且形成互补)
+seata:
+  registry:
+#    配置注册中心
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      group: SEATA_GROUP
+      application: seata-server
+      namespace: dev
+  config:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      group: SEATA_GROUP
+      application: seata-server
+      namespace: dev
+# profile>默认的配置文件>extention-configs(下表越大优先级越大)>shared-configs(下标越大优先级越大)
+feign:
+  okhttp:
+    enabled: true
+  client:
+    config:
+      default:
+        #不设置connectTimeout会导致readTimeout设置不生效
+        connectTimeout: 3000
+        readTimeout: 6000
+```
+
+
+
 详细代码可以查看:
 
 [seata-order](https://github.com/chenanddom/springcloudalibaba/tree/master/seata-order)
