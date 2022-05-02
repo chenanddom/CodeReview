@@ -85,11 +85,45 @@ store {
     maxConn = 10
     queryLimit = 100
   }
-
 }
 ``` 
+
+4. 将seata-server源码下的seata\seata\script\config-center\config.txt的配置文件修改持久方式为db,并将db的数据源配置第3步修改的数据库
+
+[seata\seata\script\config-center\config.txt](./files\config.txt)
+
+主要修改的地方如下:
+```text
+# 修改存储方式
+#Transaction storage configuration, only for the server. The file, DB, and redis configuration values are optional.
+store.mode=db
+store.lock.mode=file
+store.session.mode=file
+#Used for password encryption
+store.publicKey=
+
+# 配置数据源
+#These configurations are required if the `store mode` is `db`. If `store.mode,store.lock.mode,store.session.mode` are not equal to `db`, you can remove the configuration block.
+store.db.datasource=druid
+store.db.dbType=mysql
+store.db.driverClassName=com.mysql.jdbc.Driver
+store.db.url=jdbc:mysql://127.0.0.1:3306/seata-server?useUnicode=true&rewriteBatchedStatements=true
+store.db.user=root
+store.db.password=root@123
+store.db.minConn=5
+store.db.maxConn=30
+store.db.globalTable=global_table
+store.db.branchTable=branch_table
+store.db.distributedLockTable=distributed_lock
+store.db.queryLimit=100
+store.db.lockTable=lock_table
+store.db.maxWait=5000
+```     
+
+ 5. 将第4步修改的好的文件同步到nacos，只需要将同目录下的seata\seata\script\config-center\nacos\nacos-config.sh执行即可
  
- 
+ 具体文件如下：
+ [执行nacos-config.sh脚本文件将设计到seata的变量同步到nacos](./files\nacos\nacos-config.sh)
  
  
 
