@@ -126,6 +126,81 @@ store.db.maxWait=5000
  [执行nacos-config.sh脚本文件将设计到seata的变量同步到nacos](./files\nacos\nacos-config.sh)
  
  
+### 客户端的配置
+1.分别创建了order(订单)和stock(库存)两个服务模块
+引入如下的依赖：
+```xml
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+        </dependency>
+```
+订单模块需要额外引入feign实现远程调用
+```xml
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+
+2. 编写创建订单和扣减库存的接口
+```java
+@Service
+public class OrderService {
+
+    @Autowired
+    private TOrderMapper orderMapper;
+    @Autowired
+    private StockRemoteService stockRemoteService;
+    @Transactional
+    @GlobalTransactional
+    public Object add(){
+        TOrder tOrder = new TOrder();
+        tOrder.setUserId("1");
+        tOrder.setAmount(10.00);
+        tOrder.setOrderNo(UUID.randomUUID().toString().replace("-",""));
+        tOrder.setCommodityCode("1001");
+        tOrder.setCount(1);
+        orderMapper.createOrder(tOrder);
+        Boolean aBoolean = stockRemoteService.decreaseStock(tOrder.getCommodityCode(), tOrder.getCount());
+        double a = 1/0;
+        return "成功";
+    }
+}
+```
+````java
+@Slf4j
+@RestController
+@RequestMapping("/stock")
+public class StockController {
+
+
+    @Autowired
+    private TStockMapper tStockMapper;
+    /**
+     * 扣减库存
+     */
+    @PutMapping("/dec_stock")
+    public Boolean decreaseStock(@RequestParam("commodityCode")String commodityCode,@RequestParam("count")Integer count) {
+        log.info("请求库存微服务：{}", commodityCode);
+        return tStockMapper.decreaseStock(commodityCode,count)>0?true:false;
+    }
+
+}
+
+````
+
+详细代码可以查看:
+
+[seata-order](https://github.com/chenanddom/springcloudalibaba/tree/master/seata-order)
+
+[seata-stock](https://github.com/chenanddom/springcloudalibaba/tree/master/seata-stock)
+
+
+
+
+
 
 
 
