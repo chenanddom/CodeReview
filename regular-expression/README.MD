@@ -52,7 +52,7 @@
 
 |符号|符号含义|示例|说明|匹配输入|
 | ---- | ---- | ---- | ---- | ----|
-|*|指定字符重复0此或者n次(无要求)零到多次|(abc)*|仅包含任意个abc的字符串，等效于\w*|abc、abcabcabc|
+|*|指定字符重复0次或者n次(无要求)零到多次|(abc)*|仅包含任意个abc的字符串，等效于\w*|abc、abcabcabc|
 |+|指定字符重复1次或者n次(至少一次)1到多次|m+(abc)*|以至少1个m开头，后接任意个abc的字符串|m、mabc、mabc、mabcabc|
 |?|指定字符重复0次或者1次(最多1次)0到1|m+abc?|以至少1个m开头，后面ab或者abc的字符串|mab、mabc、mmmab、mmmmabc|
 |{n}|只能输入n个字符串|[abcd]{3}|由abcd中字母组成的任意长度为3的字符串|abc、dbc、adc|
@@ -81,16 +81,31 @@
 | ---- | ---- |
 |(pattern)|非命名捕获。捕获匹配的子字符串。编号为零的第一个捕获是由整个正则表达式模式匹配的文本，其他捕获结果则根据左括号的顺序从1开始自动编号|
 |(?<name>pattern)命名捕获。将匹配的子字符串捕获到一个组名称或编号名称中。用于name的字符串不鸟包含任何标点符号，并且不能以数字开头。可以使用单引号代替尖括号，例如(?'name')|
-
-[分组](./src/main/java/com/itdom/regular/expression/RegExpression08.java)
-
+[分组示例1](./src/main/java/com/itdom/regular/expression/RegExpression08.java)
 
 
+|常用分组构造形式|说明|
+| ---- | ---- |
+|(?:pattern)|匹配pattern但是不捕获匹配的子表达式，即他是一个非捕获匹配，不存储以后使用的匹配。这对于用"or"字符(&#124;)组合模式部件的情况很有用。例如，'industr(?:y|ies)'是比'industry|inductries'更加经济的表达式|
+|(?=pattern)|它事故土非捕获匹配。例如，'Windows(?=95&#124;98&#124;NT&#124;2000)'匹配"Windows 2000 中的Windows",但是不匹配Windows 3.1中的"Windows"。|
+|(?!pattern)|该表达式匹配的不出与匹配pattern的字符串的七十点的搜索字符串。它是一个非捕获匹配，例如'Windows(?!95&#124;98&#124;NT&#124;2000)'匹配'Windows 3.1'中的"Windows",但是不匹配"Windows 2000"中的"Windows"|
+
+[分组示例2](./src/main/java/com/itdom/regular/expression/RegExpression09.java)
+
+
+
+八.非贪婪匹配
+?这个字符紧随任何其他限定符(*、+、?、{n}、{n,}、{n,m})之后时，匹配模式时"非贪心的"。"非贪心的"模式匹配搜索到的，尽可能段的字符串，而默认的
+"贪心的"模式匹配搜索到的，尽可能长的字符串，例如，在字符串"oooo"中，"o+?"只匹配单个'o'，而"o+"匹配所有"o".
+
+[非贪婪匹配的示例](./src/main/java/com/itdom/regular/expression/RegExpression10.java)
 
 
 
 
+九.分组和反向引用
 
+[分组和反向引用](./src/main/java/com/itdom/regular/expression/RegExpression12.java)
 
 
 
