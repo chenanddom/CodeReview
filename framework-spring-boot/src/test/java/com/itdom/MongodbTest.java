@@ -30,4 +30,11 @@ public class MongodbTest {
     public void testSearch(){
         commentService.testSearchComment(1,1);
     }
+
+
+    @Test
+    public void genericToken(){
+//        Jwts
+    }
+
 }
