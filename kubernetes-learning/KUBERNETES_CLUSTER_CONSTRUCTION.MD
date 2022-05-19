@@ -2,9 +2,9 @@
 
 ## 单间Kubernetes环境平台规划
 * 单master集群
-![单master集群](./files\单Master集群架构图.PNG)
+![单master集群](./files/单Master集群架构图.PNG)
 * 多Master集群
-![多master集群](./files\多master集群架构图.PNG)
+![多master集群](./files/多master集群架构图.PNG)
 
 
 
