@@ -3,9 +3,9 @@
 当我们遇到数据库调优问题的时候，该如何思考呢？这里把思考的流程整理成下面这张图。
 整个流程划分成了观察（Show status） 和行动（Action） 两个部分。字母 S 的部分代表观察（会使
 用相应的分析工具），字母 A 代表的部分是行动（对应分析可以采取的行动）。
-![性能分析的步骤](./files\性能分析-1.png)
+![性能分析的步骤](./files/性能分析-1.png)
 
-![性能分析的重要性](./files\性能分析-2.png)
+![性能分析的重要性](./files/性能分析-2.png)
 
 
 ## 查看系统性能参数
@@ -42,12 +42,12 @@ SHOW [GLOBAL|SESSION] STATUS LIKE '参数'
 ```sql
 SHOW STATUS LIKE 'last_query_cost';
 ```
-![性能分析](./files\性能分析-3.PNG)
+![性能分析](./files/性能分析-3.PNG)
 执行
 ```sql
  select *from student_info where id between 900001 and 900100;
 ```
-[性能分析](./files\性能分析-4.PNG)
+[性能分析](./files/性能分析-4.PNG)
 
 从上面的sql的执行结果可以看到，第一个sql执行只是加载了1个页，第二个加载了20个页，相差了20倍，但是SQL执行的时间基本上时一样的，就是因为
 采用了顺序读取的方式将页面一次性加载到缓存池中，然后再进行查找，虽然页数量(last_query_cost)增加了不少，但是通过缓冲查集的机制，并没有
@@ -74,21 +74,21 @@ show variables like '%slow_query_log%'
 -- 查看慢查询的界定时长，默认时10s
 SET long_query_time=1;
 ```
-![查看慢查询日志是否开启](./files\性能分析-5.PNG)
+![查看慢查询日志是否开启](./files/性能分析-5.PNG)
 
 执行耗时SQL
 ```sql
 -- 此句sql执行超过了1秒就记录进慢查询日志
 select *from student_info where name='%ILH' or name='%LJpx%' or name like '%add' or name like '%mm%' or name like '%000%' or name like '%%%%' or name like '%888888%';
 ```
-![生成慢查询日志](./files\性能分析-6.PNG)
-![慢查询日志内容](./files\性能分析-7.PNG)
+![生成慢查询日志](./files/性能分析-6.PNG)
+![慢查询日志内容](./files/性能分析-7.PNG)
 
 * 分析慢查询日志
 在window平台需要安装perl语言的允许环境
-![性能分析语句](./files\性能分析-9.PNG)
-![新分析生成的文件](./files\性能分析-8.PNG)
-![新分析生成的文件的内容](./files\性能分析-10.PNG)
+![性能分析语句](./files/性能分析-9.PNG)
+![新分析生成的文件](./files/性能分析-8.PNG)
+![新分析生成的文件的内容](./files/性能分析-10.PNG)
 
 * 删除慢查询日志
     1. 可以直接删除文件
@@ -112,7 +112,7 @@ SHOW profiles;
 -- 查看具体的查询的消耗
 show profile for query QUERY_ID
 ```
-![show profile查看查询的消耗](./files\性能分析-11.PNG)
+![show profile查看查询的消耗](./files/性能分析-11.PNG)
 
 ① ALL：显示所有的开销信息。
 ② BLOCK IO：显示块IO开销。 
@@ -268,13 +268,13 @@ EXPLAIN SELECT * FROM s1 INNER JOIN s2;
 EXPLAIN SELECT * FROM s1 WHERE key1 = 'a';
 ```
 * 优化器将子查询优化称多表查询 id都是一样的
-![优化器将子查询优化称多表查询](./files\性能分析-13.PNG)
-![优化器将子查询变成多表连接查询](./files\性能分析-14.PNG)
+![优化器将子查询优化称多表查询](./files/性能分析-13.PNG)
+![优化器将子查询变成多表连接查询](./files/性能分析-14.PNG)
 * 存在子查询的情况
-![存在子查询的情况](./files\性能分析-12.PNG)
+![存在子查询的情况](./files/性能分析-12.PNG)
 
 *　UNION去重使用临时表
-![UNION去重使用临时表](./files\性能分析-15.PNG)
+![UNION去重使用临时表](./files/性能分析-15.PNG)
 
 
 小结：
@@ -300,39 +300,39 @@ EXPLAIN SELECT * FROM s1 WHERE key1 = 'a';
 
 
 *　SIMPLE
-![SIMPLE](./files\性能分析-16.PNG)
+![SIMPLE](./files/性能分析-16.PNG)
 
 *　PRIMARY
 一个需要union操作或者含有子查询的select，位于最外层的单位查询的select_type即为primary。且只有一个
-![PRIMARY](./files\性能分析-17.PNG)
+![PRIMARY](./files/性能分析-17.PNG)
 
 *　UNION
 union连接的两个select查询，第一个查询是PRIMARY，除了第一个表外，第二个以后的表select_type都是union
-![UNION](./files\性能分析-18.PNG)
+![UNION](./files/性能分析-18.PNG)
 
 *　UNION RESULT
 union连接的两个select查询，第一个查询是PRIMARY，除了第一个表外，第二个以后的表select_type都是union
-![UNION RESULT](./files\性能分析-18.PNG)
+![UNION RESULT](./files/性能分析-18.PNG)
 
 * SUBQUERY
 除了from字句中包含的子查询外，其他地方出现的子查询都可能是subquery
-![SUBQUERY](./files\性能分析-19.PNG)
+![SUBQUERY](./files/性能分析-19.PNG)
 
 *　DEPENDENT　SUBQUERY
 与dependent union类似，表示这个subquery的查询要受到外部表查询的影响
-[DEPENDENT　SUBQUERY](./files\性能分析-20.PNG)
+[DEPENDENT　SUBQUERY](./files/性能分析-20.PNG)
 
 
 * DENPENDENT UNION
 与union一样，出现在union 或union all语句中，但是这个查询要受到外部查询的影响
 union result
 包含union的结果集，在union和union all语句中,因为它不需要参与查询，所以id字段为null
-![DENPENDENT UNION](./files\性能分析-21.PNG)
+![DENPENDENT UNION](./files/性能分析-21.PNG)
 
 
 * DERIVED
 出现子查询，并将子查询的结果作为新表，在新表的基础上做条件查询
-![DERIVED](./files\性能分析-22.PNG)
+![DERIVED](./files/性能分析-22.PNG)
 
 
 
@@ -340,7 +340,7 @@ union result
 * MATERIALIZED
 MATERIALIZED 物化子查询可以当作做成一个临时表，比如，下面 in 后面括号里面的查询
 
-![MATERIALIZED](./files\性能分析-23.PNG)
+![MATERIALIZED](./files/性能分析-23.PNG)
 
 
 ### partitions
@@ -357,7 +357,7 @@ PARTITION p1 VALUES less than MAXVALUE
 );
 DESC SELECT * FROM user_partitions WHERE id>200;
 ```
-![分区](./files\性能分析-24.PNG)
+![分区](./files/性能分析-24.PNG)
 
 ### type针对单表的访问方法
 访问的方法有如下:
@@ -374,14 +374,14 @@ ALTER TABLE t1 ENGINE=MyISAM
 INSERT INTO t1(a) values(1);
 EXPLAIN SELECT *FROM t1;
 ```
-[system访问方法](./files\性能分析-25.PNG)
+[system访问方法](./files/性能分析-25.PNG)
 
 * const
 当我们根据主键或者唯一二级索引列与常数进行等值匹配时，对单表的访问方法就是`const`
 ```sql
 EXPLAIN SELECT *FROM s1 WHERE id=10260
 ```
-![const访问方法](./files\性能分析-26.PNG)
+![const访问方法](./files/性能分析-26.PNG)
 
 *　req_ref
 在连接查询是，如果被驱动表是通过主键或者唯一二级索引列等值匹配的方式进行访问的(如果该主键或者唯一二级所i你是联合索引的话，所有的索引列都
@@ -389,11 +389,11 @@ EXPLAIN SELECT *FROM s1 WHERE id=10260
 ```sql
 EXPLAIN SELECT *FROM s1 INNER JOIN s2 ON s1.id=s2.id;
 ```
-![eq_ref访问方法](./files\性能分析-27.PNG)
+![eq_ref访问方法](./files/性能分析-27.PNG)
 
 *　ref
 当通过二级索引与常量进行等值匹配时查询某个表，那么该表的访问方法就是ref
-![ref 访问方法](./files\性能分析-28.PNG)
+![ref 访问方法](./files/性能分析-28.PNG)
 
 * fulltext
 全文索引
@@ -404,14 +404,14 @@ insert into article(authors,content) values('zhangsan','this is content'),('lisi
 alter table article add fulltext index idx_ft_content(content);
 EXPLAIN SELECT *FROM article WHERE MATCH(content) AGAINST('test' IN BOOLEAN MODE);
 ```
-![fulltext访问方法](./files\性能分析-29.PNG)
+![fulltext访问方法](./files/性能分析-29.PNG)
 
 * req_or_null
 当对普二级索引进行等值匹配拆线呢，该索引列的值页可以时NULL值，那么对该表的访问方法就可能时'ref_or_null'
 ```sql
 EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key1 IS NULL;
 ```
-![ref_or_null访问方法](./files\性能分析-30.PNG)
+![ref_or_null访问方法](./files/性能分析-30.PNG)
 
 
 * index_merge
@@ -422,7 +422,7 @@ index merge 技术如果简单的说，其实就是：对多个索引分别进�
 ```sql
 EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key2='b'
 ```
-![index_merge访问方法](./files\性能分析-31.PNG)
+![index_merge访问方法](./files/性能分析-31.PNG)
 
 
 *　unique subquery
@@ -431,7 +431,7 @@ EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key2='b'
 ```sql
 EXPLAIN SELECT *FROM s1 WHERE key2 IN (SELECT id FROM s2 WHERE s1.key1=s2.key1) OR key2='a';
 ```
-![unique subquery访问方法](./files\性能分析-32.PNG)
+![unique subquery访问方法](./files/性能分析-32.PNG)
 
 
 *　index_subquery
@@ -445,7 +445,7 @@ value IN (SELECT key_column FROM single_table WHERE some_expr)
 EXPLAIN SELECT * FROM s1 WHERE key1 IN ('a', 'b', 'c');
 EXPLAIN SELECT * FROM s1 WHERE key1 > 'a' AND key1 < 'b';
 ```
-![range访问方法](./files\性能分析-33.PNG)
+![range访问方法](./files/性能分析-33.PNG)
 
 
 *　INDEX
@@ -453,7 +453,7 @@ EXPLAIN SELECT * FROM s1 WHERE key1 > 'a' AND key1 < 'b';
 ```sql
 explain select key_part1, key_part2 from s1 where key_part3='a';
 ```
-![index访问方法](./files\性能分析-34.PNG)
+![index访问方法](./files/性能分析-34.PNG)
 
 
 
@@ -462,7 +462,7 @@ explain select key_part1, key_part2 from s1 where key_part3='a';
 ```sql
  explain select *from s1;
 ```
-![All访问方法](./files\性能分析-35.PNG)
+![All访问方法](./files/性能分析-35.PNG)
 
 结论：
 结果值最好到最坏的顺序依次时:system>const>eq_ref>ref>fulltext>ref_or_null>index_merge>unique_subquery>index_subquery>range>index>ALL
@@ -474,7 +474,7 @@ explain select key_part1, key_part2 from s1 where key_part3='a';
 ```sql
 EXPLAIN SELECT * FROM s1 WHERE key1 > 'z' AND key3 = 'a';
 ```
-![可能使用到的索引和实际使用到的索引](./files\性能分析-36.PNG)
+![可能使用到的索引和实际使用到的索引](./files/性能分析-36.PNG)
 
 
 
@@ -482,29 +482,29 @@ EXPLAIN SELECT * FROM s1 WHERE key1 > 'z' AND key3 = 'a';
 实际使用到的索引长度(即：字节数)帮你检查`是否充分的利用上了索引`，`值越大越好`,主要针对于联合索引，有一定的参考意义。
 **注意:utf-8使用3个字节表示一个字符.**
 
-![整型的key_len占4个字节](./files\性能分析-37.PNG)
+![整型的key_len占4个字节](./files/性能分析-37.PNG)
 
 允许为空的字段需要占据一个字节
 
-![允许为空的字段需要占据一个字节](./files\性能分析-38.PNG)
+![允许为空的字段需要占据一个字节](./files/性能分析-38.PNG)
 
 UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1个字节表示空值
 
-![UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1个字节表示空值](./files\性能分析-39.PNG)
+![UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1个字节表示空值](./files/性能分析-39.PNG)
 
 
 ### ref 
 当使用索引列等值查询时，与索引列进行等值匹配的对象信息。比如只是一个常数或者是某个列或者是函数
-![索引列进行等值匹配的对象信息是常数或者是某个列或者是函数](./files\性能分析-40.PNG)
+![索引列进行等值匹配的对象信息是常数或者是某个列或者是函数](./files/性能分析-40.PNG)
 
 
 ### rows
 预估的需要读取的记录条数值越小越好`
-![预估的需要读取的记录条数](./files\性能分析-41.PNG)
+![预估的需要读取的记录条数](./files/性能分析-41.PNG)
 
 ### filtered
 某个表经过搜索条件过滤后剩余记录条数的百分比,如果使用的是索引执行的单表扫描，那么计算时需要估计出满足除使用,到对应索引的搜索条件外的其他搜索条件的记录有多少条。
-![filtered](./files\性能分析-42.PNG)
+![filtered](./files/性能分析-42.PNG)
 
 ### Extra
 一些额外的信息,更准确的理解MySQL到底将如何执行给定的查询语句
@@ -513,18 +513,18 @@ UTF-8字符集一个字符需要3个字节表示加上2个字节表示定长和1
 * Impossible WHERE
 
 查询语句的`WHERE`子句永远为`FALSE`时将会提示该额外信息
-![Impossible WHERE](./files\性能分析-43.PNG)
+![Impossible WHERE](./files/性能分析-43.PNG)
 
 
 * Using where
 当我们使用全表扫描来执行对某个表的查询，并且该语句的`WHERE`子句中有针对该表的搜索条件时，在`Extra`列中会提示上述额外信息
-![Using where](./files\性能分析-44.PNG)
+![Using where](./files/性能分析-44.PNG)
 
 * No matching min/max row
 ```sql
 EXPLAIN SELECT MIN(key1) FROM s1 WHERE key1='adjask';
 ```
-![No matching min/max row](./files\性能分析-45.PNG)
+![No matching min/max row](./files/性能分析-45.PNG)
 
 
 * Using index
@@ -533,14 +533,14 @@ EXPLAIN SELECT MIN(key1) FROM s1 WHERE key1='adjask';
 ```sql
 EXPLAIN SELECT key1 FROM s1 WHERE key1='a';
 ```
-![Using index](./files\性能分析-46.PNG)
+![Using index](./files/性能分析-46.PNG)
 
 * Using index condtion
 有些搜索条件中虽然出现了索引列，但却不能使用到索引看课件理解索引条件下推
 ```sql
 EXPLAIN SELECT * FROM s1 WHERE key1 >'z' AND key1 LIKE '%a';
 ```
-![Using index condition](./files\性能分析-47.PNG)
+![Using index condition](./files/性能分析-47.PNG)
 
 * Using join buffer (hash join)/Using join buffer (Block Nested Loop)
 在连接查询执行过程中，当被驱动表不能有效的利用索引加快访问速度，MySQL一般会为其分配一块名叫`join buffer`的内存块来加快查询速度，
@@ -548,7 +548,7 @@ EXPLAIN SELECT * FROM s1 WHERE key1 >'z' AND key1 LIKE '%a';
 ```sql
  EXPLAIN SELECT * FROM s1 JOIN s2 ON s1.common_field=s2.common_field;
 ```
-![Using join buffer (hash join)/Using join buffer (Block Nested Loop)](./files\性能分析-48.PNG)
+![Using join buffer (hash join)/Using join buffer (Block Nested Loop)](./files/性能分析-48.PNG)
 
 * Not exists
 在连接查询执行过程中，当被驱动表不能有效的利用索引加快访问速度，MySQL一般会为其分配一块名叫`join buffer`的内存块来加快查询速度，
@@ -556,7 +556,7 @@ EXPLAIN SELECT * FROM s1 WHERE key1 >'z' AND key1 LIKE '%a';
 ```sql
 EXPLAIN SELECT *FROM s1 LEFT JOIN s2 ON s1.key1 WHERE s2.id IS NULL;
 ```
-![Not exists](./files\性能分析-49.PNG)
+![Not exists](./files/性能分析-49.PNG)
 
 * Using interesect(...),Using union(...)和Using sort_union(...)
 如果执行计划的`Extra`列出现了`Using intersect(...)`提示，说明准备使用`Intersect`索引
@@ -566,14 +566,14 @@ EXPLAIN SELECT *FROM s1 LEFT JOIN s2 ON s1.key1 WHERE s2.id IS NULL;
 ````sql
 EXPLAIN SELECT *FROM s1 WHERE key1='a' OR key3='a';
 ````
-![Using interesect(...),Using union(...)和Using sort_union(...)](./files\性能分析-50.PNG)
+![Using interesect(...),Using union(...)和Using sort_union(...)](./files/性能分析-50.PNG)
 
 * Zero limit
 当我们的`LIMIT`子句的参数为`0`时，表示压根儿不打算从表中读出任何记录，将会提示该额外信息
 ```sql
 EXPLAIN SELECT * FROM s1 LIMIT 0;
 ```
-![Zero limit](./files\性能分析-51.PNG)
+![Zero limit](./files/性能分析-51.PNG)
 
 * Using filesort
 很多情况下排序操作无法使用到索引，只能在内存中（记录较少的时候）或者磁盘中（记录较多的时候）
@@ -582,7 +582,7 @@ EXPLAIN SELECT * FROM s1 LIMIT 0;
 ```sql
  EXPLAIN SELECT * FROM s1 ORDER BY key1;
 ```
-![Using filesort](./files\性能分析-52.PNG)
+![Using filesort](./files/性能分析-52.PNG)
 
 
 *　Using temporary
@@ -593,7 +593,7 @@ EXPLAIN SELECT * FROM s1 LIMIT 0;
 ```sql
 EXPLAIN SELECT DISTINCT common_field FROM s1;
 ```
-![Using temporary](./files\性能分析-53.PNG)
+![Using temporary](./files/性能分析-53.PNG)
 [下一章(索引优化和查询优化)](./QUERY_OPTIMIZATION_INDEX_OPTIMIZATION.MD)
 
 

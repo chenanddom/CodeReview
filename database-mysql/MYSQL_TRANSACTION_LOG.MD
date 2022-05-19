@@ -31,7 +31,7 @@ InnoDB存储引擎是以页位单位来管理存储空间的。在真正访问�
 存中修改过的全部页面刷新到磁盘，只需要把修改了哪些东西记录一下就好。比如，某个事务将系统
 表空间中第10号页面中偏移量为100 处的那个字节的值 1 改成2 。我们只需要记录一下：将第0号表
 空间的10号页面的偏移量为100处的值更新为 2 。
-![为什么需要REDO日志](./files\数据库事务-9.png)
+![为什么需要REDO日志](./files/数据库事务-9.png)
 
 
 ### REDO日志的好处、特点
@@ -52,14 +52,14 @@ InnoDB存储引擎是以页位单位来管理存储空间的。在真正访问�
 * Redo log可以简单的分为一下两个部分:
     * 重做日志的缓冲(redo log buffer),保护在内存中，是易失的。
         redo log buffer大小，默认大小是16M，最大是4096M，最小是1M。
-        ![innodb_log_buffer_size的大小](./files\数据库事务-10.PNG)
+        ![innodb_log_buffer_size的大小](./files/数据库事务-10.PNG)
        
     * 重做体制文件(redo log file)，保存在硬盘中，是持久的。
-        ![事务日志文件](./files\数据库事务-11.PNG)    
+        ![事务日志文件](./files/数据库事务-11.PNG)    
         
 ### redo的整体流程
 redo log的流转流程如下：
-![redo log的流转流程](./files\数据库事务-12.PNG)
+![redo log的流转流程](./files/数据库事务-12.PNG)
 ```text
 1. 先将源时数据从磁盘读如内存中，修改数据的内存拷贝
 2. 生成一条重做日志并写入redo log buffer,记录的是数据被修改后的值
@@ -71,7 +71,7 @@ redo log的流转流程如下：
 redo log的写入不是直接写入磁盘的，InnoDB引擎会在redo log的时候先写入redo log buffer,之后以一定测频率刷入到真正的redo log file中。这里的一
 定频率时怎么样的呢？InnoDB存储引擎使用的是怎么样的刷盘策略？
 
-![redo log的刷盘策略](./files\数据库事务-13.png)
+![redo log的刷盘策略](./files/数据库事务-13.png)
 
 注意： redo log刷盘到redo log file的过程并不是真正的刷到磁盘中区，只是刷入到文件系统缓存(page cache)中去(这是现代操作系统的为了提高
 文件写入的效率做的一个优化)，真正的的吸入会交给系统自己来决定(比如page cache足够大了)。那么对于InnoDB来说就存在一个问题，如果交给系统来同步，
@@ -153,14 +153,14 @@ MySQL把对底层页面中的一次原子访问的过程称之位一个Mini-Tran
 Mini-Transaction。一个所谓的mtr可以包含一组redo日志，在进行崩溃恢复时这一组redo日志作为一个不可份个的整体。
 
 一个事务可以包含若干条语句，每一条语句其实都是由若干个mtr组成，每一个mtr又可任意包含若干redo日志，画个图表示它们的关系就是这样的。
-![mtr](./files\数据库事务-14.PNG)
+![mtr](./files/数据库事务-14.PNG)
 
 *　redo 日志写入log buffer
 向log buffer中写入日志的过程时顺序的，也就先往前边的block中写，当block的空闲空间用完之后再往下一个block中写。当我们想往log buffer中写
 如redo日志时，第一个遇到的问题就是应该写再哪个block的哪个偏移量处，所以InnoDB的设计者特意提供了一个称之为buf_free的全局变量，该变量指明后
 续写入的redo日志应该写入到log buffer中的哪个位置，如图所示:
 
-![redo 日志写入log buffer](./files\数据库事务-15.PNG)
+![redo 日志写入log buffer](./files/数据库事务-15.PNG)
 
 一个mtr执行过程中可能产生若干条redo日志，这些redo日志时一个不可份个的组，所以其实并不是没生成一条redo日志，就将器插入到log buffer中，
 而是每个mtr运行过程中产生的日志先暂存到一个地方，当该mtr结束的时候，将过程中产生的一组redo日志再全部赋值到log buffer中。我们现在假设有两个
@@ -168,11 +168,11 @@ Mini-Transaction。一个所谓的mtr可以包含一组redo日志，在进行崩
     * 事务T1的两个mtr分贝称为mtr_T1_1和mtr_T1_2.
     * 事务T2的两个mtr分贝称为mtr_T2_1和mtr_T2_2
     每个mtr都会产生一组redo日志，用示意图来描述一下这些mtr产生的日志情况：
-![每个mtr都会产生一组redo日志](./files\数据库事务-16.PNG)  
+![每个mtr都会产生一组redo日志](./files/数据库事务-16.PNG)  
 
 不同的事务可能是并发执行的，所以T1 、T2 之间的mtr 可能是交替执行的。
 
-![事务是可以并发执行的](./files\数据库事务-17.PNG)
+![事务是可以并发执行的](./files/数据库事务-17.PNG)
 
 
 * redo log block的结构
@@ -194,7 +194,7 @@ Mini-Transaction。一个所谓的mtr可以包含一组redo日志，在进行崩
     * innodb_log_file_size：单个 redo log 文件设置大小，默认值为 48M 。最大值为512G，注意最大值
       指的是整个 redo log 系列文件之和，即（innodb_log_files_in_group * innodb_log_file_size ）不能大
       于最大值512G。总共的redo日志文件大小其实就是： innodb_log_file_size × innodb_log_files_in_group 。
-      ![Innodb相关参数设置](./files\数据库事务-18.PNG)
+      ![Innodb相关参数设置](./files/数据库事务-18.PNG)
 *　checkpoint
 在整个日志文件组中还有两个重要的属性，分别是write pos、checkpoint
     * write pos 是当前记录的位置，一边写一边后移
@@ -202,7 +202,7 @@ Mini-Transaction。一个所谓的mtr可以包含一组redo日志，在进行崩
 每次刷盘redo log 记录到日志文件组中，write pos位置就会后移更新。每次MySQL加载文件组恢复数据时，会清空加载果的redo log记录，并吧checkpoint
 后移更新。write pos和checkpoint之间的还空着的部分可以用来写入新的redo log
 
-![checkpoint与write pos的执行顺序](./files\数据库事务-19.png)
+![checkpoint与write pos的执行顺序](./files/数据库事务-19.png)
 
 如果 write pos 追上 checkpoint ，表示日志文件组满了，这时候不能再写入新的 redo log记录，MySQL 得
 停下来，清空一些记录，把 checkpoint 推进一下。
@@ -211,7 +211,7 @@ Mini-Transaction。一个所谓的mtr可以包含一组redo日志，在进行崩
 ## Undo日志
 redo log是事务持久性的保证，undo log是事务原子性的保证。在事务中**更新数据**的**前置操作**其实要先写入一个undo log
 
-![Undo日志优先写](./files\数据库事务-20.png)
+![Undo日志优先写](./files/数据库事务-20.png)
 
 对Undo log的理解：
 ```text
@@ -252,7 +252,7 @@ InnoDB对undo log的管理采用段的方式，也就是**回滚段(rollback seg
 段中进行undo页的申请。
     * 在InnoDB1.1版本之前(不包括1.1版本)，只有一个rollback segment,因此支持同时在先的事务限制为1024.虽然绝大多数的应用来水都已经够用了。
     * 从1.1版本开始InnoDB支持最大128个rollback segment,故其支持同时在线的事务限制提高到了128*1024。
-    ![undo log段的大小](./files\数据库事务-21.PNG)
+    ![undo log段的大小](./files/数据库事务-21.PNG)
        
 虽然InnoDB1.1版本支持128个rollback segment,但是这些rollback segment都存储于贡献空间的ibdata中。从InnoDB1.2版本开始，可以通过
 rollback segment做一步的设置。这些参数包括:
@@ -262,7 +262,7 @@ rollback segment做一步的设置。这些参数包括:
 * innodb_undo_tablespaces:设置构成rollback segment文件的数量，这样rollback segment可以较为平均的分布在多个文件中。设置该参数后，
 会在路径innodb_undo_directory看到undo为前缀的文件，该文件就代表了rollback segment文件。
 
-![相关参数的设置](./files\数据库事务-22.PNG)
+![相关参数的设置](./files/数据库事务-22.PNG)
 
 
 * undo 页的重用
@@ -312,14 +312,14 @@ undo表空间。
 * undo log的生命周期
 1. 只有buffer Pool的流程：
 
-![只有buffer pool的执行流程](./files\数据库事务-23.png)
+![只有buffer pool的执行流程](./files/数据库事务-23.png)
 
 2. 有了Redo Log和Undo Log之后
  
-![有了Redo Log和Undo Log之后的执行流程](./files\数据库事务-24.png)
+![有了Redo Log和Undo Log之后的执行流程](./files/数据库事务-24.png)
 
 * 存储结构
-![MySQL的存储结构](./files\数据库事务-25.png)
+![MySQL的存储结构](./files/数据库事务-25.png)
 
 
 当我们执行INSERT时：
@@ -327,16 +327,16 @@ undo表空间。
 begin;
 INSERT INTO user (name) VALUES ("tom");
 ```
-![MySQL的存储结构](./files\数据库事务-26.png)
+![MySQL的存储结构](./files/数据库事务-26.png)
 
 当我们执行UPDATE时：
 
-![MySQL的存储结构](./files\数据库事务-27.png)
+![MySQL的存储结构](./files/数据库事务-27.png)
 
 ```sql
 UPDATE user SET id=2 WHERE id=1;
 ```
-![更新](./files\数据库事务-28.png)
+![更新](./files/数据库事务-28.png)
 
 
 * undo log是如何回滚的

@@ -107,19 +107,19 @@ SELECT DISTINCT department_id FROM employees;
 -- 要写DISTINCT department_id 即可，后面不需要再加其他的列名了。
 SELECT DISTINCT department_id,salary FROM employees;
 ```
-![第一句sql去重前](./files\sql去重-1.PNG)
-![第一句sql去重后](./files\sql去重-2.PNG)
+![第一句sql去重前](./files/sql去重-1.PNG)
+![第一句sql去重后](./files/sql去重-2.PNG)
 
-![第二句sql去重前](./files\sql去重-3.PNG)
-![第二句sql去重后](./files\sql去重-4.PNG)
+![第二句sql去重前](./files/sql去重-3.PNG)
+![第二句sql去重后](./files/sql去重-4.PNG)
 
 
 ### 控制运算处理
 ```sql
 SELECT employee_id,salary,commission_pct,12*salary*(1+IFNULL(commission_pct,0)) "annual_sal" FROM employees;
 ```
-![sql加ifnull()函数之前](./files\sql空值参与运算-1.PNG)
-![sql加ifnull()函数之后](./files\sql空值参与运算-2.PNG)
+![sql加ifnull()函数之前](./files/sql空值参与运算-1.PNG)
+![sql加ifnull()函数之后](./files/sql空值参与运算-2.PNG)
 
 ### 着重号
 ```sql
@@ -143,20 +143,20 @@ SELECT employee_id,salary,commission_pct,12*salary*(1+IFNULL(commission_pct,0)) 
 SELECT 1=1,1='1',1=0,'a'='a',(5+3)=(2+6),''=NULL,NULL=NULLFROM dual;
 ```        
 SQL执行结果
-![等号运算符sql执行结果](./files\比较运算符-1.PNG)
+![等号运算符sql执行结果](./files/比较运算符-1.PNG)
 
 ```sql
 # 字符串和数字互相转换，如果缓缓不成功就看作是0，此处的字符串abc是无法正常转换成ASIIC码的，所以默认返回0.
 SELECT 1=2,0='abc',1='abc'FROM DUAL;
 ```
 SQL执行结果
-![等号运算符sql执行结果](./files\比较运算符-2.PNG)
+![等号运算符sql执行结果](./files/比较运算符-2.PNG)
 
 * 不等于运算符
 ```sql
 SELECT 1<>1,1!=2,'a'!='b',(3+4)<>(2+6),'a'!=NULL,NULL<>NULL FROM DUAL;
 ```
-![不等于运算符sql执行结果](./files\比较运算符-3.PNG)
+![不等于运算符sql执行结果](./files/比较运算符-3.PNG)
 
 
 * 非符号运算符 LEAST(),GREATEST()
@@ -165,13 +165,13 @@ SELECT 1<>1,1!=2,'a'!='b',(3+4)<>(2+6),'a'!=NULL,NULL<>NULL FROM DUAL;
 ```sql
 SELECT LEAST(1,2,4,5,6,7),LEAST('b','a','c'),LEAST(1,NULL,2) FROM DUAL
 ```
-![运行结果](./files\比较运算符-4.PNG)
+![运行结果](./files/比较运算符-4.PNG)
 
 ```sql
 -- 最大值运算符
 SELECT GREATEST(1,2,5),GREATEST('D','A','F'),GREATEST(1,NULL,2) FROM DUAL;
 ```
-![sql执行结果](./files\比较运算符-5.PNG)
+![sql执行结果](./files/比较运算符-5.PNG)
 
 
 * 转义字符
@@ -181,7 +181,7 @@ SELECT job_id FROM jobs where job_id LIKE 'IT\_%';
 -- 使用ESCAPE自定义转义字符
 SELECT job_id FROM jobs where job_id LIKE 'IT$_%' ESCAPE '$';
 ```
-![sql执行结果](./files\比较运算符-6.PNG)
+![sql执行结果](./files/比较运算符-6.PNG)
 
 
 [下一章(关联查询)](./ASSOCIATION_QUERY.MD)

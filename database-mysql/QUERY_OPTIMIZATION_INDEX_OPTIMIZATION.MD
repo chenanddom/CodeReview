@@ -102,23 +102,23 @@ CALL insert_stu(100000,500000);
 ```sql
 EXPLAIN SELECT *FROM s1 WHERE age=20;
 ```
-![全值匹配我最爱](./files\索引优化-查询优化-1.PNG)
+![全值匹配我最爱](./files/索引优化-查询优化-1.PNG)
 ```sql
 -- 添加索引
  CREATE INDEX idx_age ON student(age);
 ```
-![增对单列增加索引](./files\索引优化-查询优化-2.PNG)
+![增对单列增加索引](./files/索引优化-查询优化-2.PNG)
 
 ```sql
 EXPLAIN SELECT *FROM student WHERE age=20 AND classId=4;
 ```
-![两个字段的联合索引](./files\索引优化-查询优化-3.PNG)
+![两个字段的联合索引](./files/索引优化-查询优化-3.PNG)
 ```sql
 -- 创建联合索引
 CREATE INDEX idx_age_classId ON student(age,classId);
 EXPLAIN SELECT *FROM student WHERE age=20 AND classId=4;
 ```
-![创建联合索引后](./files\索引优化-查询优化-4.PNG)
+![创建联合索引后](./files/索引优化-查询优化-4.PNG)
 
 以上的的几次查询我们可以得出：如果查询的条件超出了索引包含的列， 那么会先按照索引的查找对应的主键索引，然后根据主键索引回表查询，根据回表查询
 找出所需要的字段。
@@ -658,7 +658,7 @@ JOIN方式连接多个表，本质就是各个表之间数据的循环匹配。M
 * Simple Nested-Loop Join(简单嵌套循环)
 简单嵌套循环的算法相当的简单，从A中取出一条数据1，遍历表B，将匹配到的数据放到result...以此类推，驱动表A的每一条记录与被驱动的表B的记录进行判断。
 
-![Simple Nested-Loop Join](./files\索引优化-查询优化-5.PNG)
+![Simple Nested-Loop Join](./files/索引优化-查询优化-5.PNG)
 从上图可以看到这种方式的效率是比较抵消的，以上表A数据100条，表B数据1000条计算，则A*B=10万次。开销统计如下：
 
 | **开销统计** | **SNLJ**|
@@ -674,7 +674,7 @@ JOIN方式连接多个表，本质就是各个表之间数据的循环匹配。M
 *　Index Nested-Loop Join(索引嵌套循环连接)
 Index Nested-Loop Join其优化的思路主要是为了减少内层表数据的匹配次数，所以要求被驱动表上必须有索引才可以。
 通过外层表匹配条件直接与内层表索引进行匹配，避免和内层表的每条记录取进行比较，这样极大的减少了对内层表的匹配次数。
-![Index Nested-Loop Join](./files\索引优化-查询优化-6.PNG)
+![Index Nested-Loop Join](./files/索引优化-查询优化-6.PNG)
 
 驱动表中的每条记录通过被驱动表的索引进行访问，因为索引查询的成本是比较固定的，故mysql优化器都倾向于使用记录数少的表作为驱动表(外表)
 
@@ -701,7 +701,7 @@ buffer中，然后全表扫描被驱动表，被驱动表的每一条记录一�
 这里缓存的不只是关联表的列，select 后面的列也会缓存起来。
 在一个有N个join关联的sql中会分配N-1个join buffer。所以查询到饿时候见了不必要的字段，可以让join buffer中可以存放更多的列.
 ```
-![Block Nested-Loop Join(块嵌套循环连接)](./files\索引优化-查询优化-7.PNG)
+![Block Nested-Loop Join(块嵌套循环连接)](./files/索引优化-查询优化-7.PNG)
 
 | **开销统计** | **SNLJ**| **INLJ**| BNLJ |
 | ---- | ---- | ---- | ---- |   
@@ -715,10 +715,10 @@ buffer中，然后全表扫描被驱动表，被驱动表的每一条记录一�
     block_nested_loop
 通过 show variables like '%optimizer_switch%'查看block_nested_loop状态.默认是开启的.
 
-![block_nested_loop参数查看](./files\索引优化-查询优化-8.PNG)
+![block_nested_loop参数查看](./files/索引优化-查询优化-8.PNG)
 查看join buffer大小
 
-![join buffer的大小](./files\索引优化-查询优化-9.PNG)
+![join buffer的大小](./files/索引优化-查询优化-9.PNG)
 
 注意:join_buffer_size的最大值在32位系统可以申请4G,而在64位操作系统下可以申请大于4G的join buffer的空间(64位的Windows除外,
 其大值回被截断位4GB并发出警告)
@@ -753,7 +753,7 @@ CREATE INDEX idx_age_stuno_name ON student(age,stuno,name);
 -- 虽然创建了三个字段的联合索引，但是只使用了前面两个字段的生效，ORDER BY没有使用上索引
 EXPLAIN SELECT SQL_NO_CACHE *FROM student WHERE age=30 AND stuno<10100 ORDER BY name;
 ```
-![ORDER BY尽可能的要](./files\索引优化-查询优化-10.PNG)
+![ORDER BY尽可能的要](./files/索引优化-查询优化-10.PNG)
 
 * filesort算法：双路排序和单路排序
     * 双路排序算法:
@@ -773,7 +773,7 @@ EXPLAIN SELECT SQL_NO_CACHE *FROM student WHERE age=30 AND stuno<10100 ORDER BY 
 ```sql
 SHOW VARIABLE LIKE '%sort_buffer_size%';
 ```   
-![sort_buffer_size](./files\索引优化-查询优化-11.PNG)
+![sort_buffer_size](./files/索引优化-查询优化-11.PNG)
 
 
 2. 尝试提高max_length_for_sort_data
@@ -819,14 +819,14 @@ CPU资源是极其宝贵的。
 ```sql
 `SELECT *FROM student s,(SELECT id FROM student ORDER BY id LIMIT 200000,10)a WHERE t.id = a.id;
 ```
-![根据主键排序好然后在联合查询](./files\索引优化-查询优化-12.PNG)
+![根据主键排序好然后在联合查询](./files/索引优化-查询优化-12.PNG)
 
 优化思路2:
     该方案适用于主键自增的表，可以把Limit查询转换成某个位置的查询。
 ```sql
 SELECT *FROM student WHERE id>200000 LIMIT 10;
 ```
-![根据自增主键id进行查找](./files\索引优化-查询优化-13.PNG)
+![根据自增主键id进行查找](./files/索引优化-查询优化-13.PNG)
 
 
 ## 覆盖索引
@@ -848,7 +848,7 @@ mysql> EXPLAIN SELECT age,name FROM student WHERE age<>20;
 mysql> EXPLAIN SELECT *FROM student WHERE name LIKE '%abc%';
 mysql> EXPLAIN SELECT id,age,name FROM student WHERE name LIKE '%abc%';
 ```
-![覆盖索引即使使用了正常情况使得索引失效的运算符，依旧可以走索引](./files\索引优化-查询优化-14.PNG)
+![覆盖索引即使使用了正常情况使得索引失效的运算符，依旧可以走索引](./files/索引优化-查询优化-14.PNG)
 
 2. 覆盖索引的利弊
     好处:
@@ -888,9 +888,9 @@ set optimizer_switch='index_condition_push=off';
 EXPLAIN SELECT *FROM s1 WHERE key1>'z' AND key1 LIKE '%zhsa%';
 
 ```
-![ICP的开启和关闭](./files\索引优化-查询优化-15.PNG)
+![ICP的开启和关闭](./files/索引优化-查询优化-15.PNG)
 
-[下一章(数据库的设计原则)](./)
+[下一章(数据库的设计原则)](./PRINCIPLES_INDEX_CREATION_DESIGN.MD)
 
 
 

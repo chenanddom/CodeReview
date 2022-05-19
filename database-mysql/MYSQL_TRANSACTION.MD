@@ -1,7 +1,7 @@
 [上一章(数据库优化策略)](./TUNING_STRATEGY.MD)
 # 数据库事务
 SHOW ENGINES命令来查看当前MySQL支持的存储引擎都有哪些，以及这额存储引擎是否支持事务
-![SHOW ENGINES查看MySQL支持的存储引擎](./files\数据库事务-1.PNG)
+![SHOW ENGINES查看MySQL支持的存储引擎](./files/数据库事务-1.PNG)
 
 * 基本概念
 事务：一组逻辑操作单元，使数据从一种状态变换到另一种状态。
@@ -29,7 +29,7 @@ SHOW ENGINES命令来查看当前MySQL支持的存储引擎都有哪些，以及
 UPDATE accounts SET money = money - 50 WHERE NAME = 'AA';
 UPDATE accounts SET money = money + 50 WHERE NAME = 'BB';
 ```
-![](./files\数据库事务-2.png)
+![](./files/数据库事务-2.png)
     *　持久性（durability）：
         持久性是指一个事务一旦被提交，它对数据库中数据的改变就是永久性的，接下来的其他操作和数据库
         故障不应该对其有任何影响。
@@ -66,7 +66,7 @@ UPDATE accounts SET money = money + 50 WHERE NAME = 'BB';
 一个基本的状态转换图如下所示：
 
 
-![数据库事务的状态转换](./files\数据库事务-3.png)
+![数据库事务的状态转换](./files/数据库事务-3.png)
 
 
 
@@ -107,7 +107,7 @@ RELEASE SAVEPOINT 保存点名称;
 -- 查看系统变量autocommit是否开启自动提交事务的
 SHOW VARIABLES LIKE '%autocommit%';
 ```
-![查看autocommit是否开启自动提交事务](./files\数据库事务-4.PNGs)
+![查看autocommit是否开启自动提交事务](./files/数据库事务-4.PNGs)
 如果我们想关闭这种自动提交的功能，可以使用下面两种方式:
 1. 显示的使用START TRANSACTION 或者 BEGIN语句开启一个事务。这样在本次事务提交或者 回滚前会暂时关闭自动提交的功能。
 2. 把系统变量autocommit的值设置位OFF，就想这样
@@ -153,7 +153,7 @@ BEGIN;#此语句会影视的提交前面的语句所属的事务。
                 等语句也会隐式的提交前边语句所属的事务。                 
 
 * 事务的回滚
-![事务回滚的例子](./files\数据库事务-5.PNG)
+![事务回滚的例子](./files/数据库事务-5.PNG)
 
 
 
@@ -243,11 +243,11 @@ SQL标准中规定，针对不同的隔离级别，并发事务可以发生不�
 查看MySQL的事务隔离级别
 5.7.20以前的版本查看事务隔离级别的方式:
 
-![mysql5.7.20以前的版本](./files\数据库事务-6.PNG)
+![mysql5.7.20以前的版本](./files/数据库事务-6.PNG)
 
 5.7.20版本以后查看数据库事务隔离级别的方式：
 
-![mysql5.7.20以前后的版本](./files\数据库事务-7.PNG)
+![mysql5.7.20以前后的版本](./files/数据库事务-7.PNG)
 
 
 ### 设置数据库隔离级别

@@ -20,7 +20,7 @@ html 查看MySQL文档的系统变量。
 会在MySQL服务器内存中生成与该会话对应的会话系统变量，这些会话系统变量的初始值是全局系统变
 量值的复制。如下图：
 ```
-![系统变量](./files\变量-1.PNG)
+![系统变量](./files/变量-1.PNG)
 
 * 全局系统变量针对于所有会话（连接）有效，但不能跨重启
 * 会话1对某个全局系统变量值的修改会导致会话2中同一个全局系统变量值的修改。
@@ -33,7 +33,7 @@ html 查看MySQL文档的系统变量。
 -- 查看所有全局变量
 SHOW GLOBAL VARIABLES;
 ```
-![查看所有全局变量](./files\变量-2.PNG)
+![查看所有全局变量](./files/变量-2.PNG)
 示例2
 ```sql
 -- 查看所有会话变量
@@ -42,7 +42,7 @@ SHOW SESSION VARIABLES;
 SHOW VARIABLES;
 
 ```
-![查看会话变量](./files\变量-3.PNG)
+![查看会话变量](./files/变量-3.PNG)
 
 * 查看满足条件的系统变量可以使用下面的sql
 ```sql
@@ -167,7 +167,7 @@ END $
 DELIMITER ;
 CALL add_value();
 ```
-![存储过程add_value()定义局部变量](./files\变量-4.PNG)
+![存储过程add_value()定义局部变量](./files/变量-4.PNG)
 
 例子2：
 ```sql
@@ -332,8 +332,8 @@ CALL update_salary_by_eid1(104);
 
 SELECT  *FROM employees WHERE employee_id=104;
 ```
-![执行存储程序之前](./files\分支结构-1.PNG)
-![执行存储程序之后](./files\分支结构-2.PNG)
+![执行存储程序之前](./files/分支结构-1.PNG)
+![执行存储程序之后](./files/分支结构-2.PNG)
 
 
 
@@ -397,11 +397,11 @@ CALL update_salary_by_eid4(109);
 
 SELECT * FROM employees WHERE employee_id=109;
 ```
-![分支结构](./files\分支结构-3.PNG)
-![分支结构](./files\分支结构-4.PNG)
+![分支结构](./files/分支结构-3.PNG)
+![分支结构](./files/分支结构-4.PNG)
 
-![分支结构](./files\分支结构-5.PNG)
-![分支结构](./files\分支结构-6.PNG)
+![分支结构](./files/分支结构-5.PNG)
+![分支结构](./files/分支结构-6.PNG)
 
 ### 循环结构之LOOP
 LOOP循环语句用来重复执行某些语句。LOOP内的语句一直重复执行直到循环被退出(使用LEAVE子句)，跳出循环过程。
@@ -445,7 +445,7 @@ CALL update_salary_loop(@num);
 
 SELECT @num;
 ```
-![loop执行结果](./files\分支结构-7.PNG)
+![loop执行结果](./files/分支结构-7.PNG)
 
 
 
@@ -487,7 +487,7 @@ CALL update_salary_while(@num);
 SELECT @num;
 
 ```
-![while循环执行结果](./files\分支结构-8.PNG)
+![while循环执行结果](./files/分支结构-8.PNG)
 
 ### 循环结构之REPEAT
 REPEAT语句创建一个带条件判断的循环过程。与WHILE循环不同的是，REPEAT循环首先会执行一次循环，然后在UNTIL中进行条件表达式的判断，如果满足条件就退出
@@ -541,7 +541,7 @@ CALL update_salary_repeat(@num);
 
 SELECT @num;
 ```
-![repeat循环体执行结果](./files\分支结构-9.PNG)
+![repeat循环体执行结果](./files/分支结构-9.PNG)
 
 
 ### 跳转语句之LEAVE语句
@@ -583,7 +583,7 @@ CALL update_salary_loop(@num);
 
 SELECT @num;
 ```
-![loop执行结果](./files\分支结构-7.PNG)
+![loop执行结果](./files/分支结构-7.PNG)
 
 
 ### 跳转语句之ITERATE语句
@@ -623,7 +623,7 @@ DROP PROCEDURE IF EXISTS iterate_test;
 
 CALL iterate_test();
 ```
-![iterate关键字跳转](./files\分支结构-10.PNG)
+![iterate关键字跳转](./files/分支结构-10.PNG)
 
 
 

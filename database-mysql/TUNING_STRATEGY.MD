@@ -69,15 +69,15 @@ SQL查询重写包括了查询优化，等价为此重写，视图重写，条�
   1.读写分离      
     如果读和写的业务量很大，并且它们都在同一个数据库服务器中进行操作，那么数据库的性能就会出现性能瓶颈，这是为了提升系统的性能，优化用户体验，
     我们可以采取读写分离的方式江都主数据库的负载，比如主数据库(master)完成写操作，从数据库(slave)完成读操作。   
-    ![一主一从](./files\数据库调优策略-1.png)    
-    ![双主双从](./files\数据库调优策略-2.png)    
+    ![一主一从](./files/数据库调优策略-1.png)    
+    ![双主双从](./files/数据库调优策略-2.png)    
         
         
    2.数据分片     
    对数据库分库分表。当数据量达到千万级别以上，有时候我们需要把一个数据库切分成多份，放到不同的数据库服务器上，减少对单以数据库服务器的访问压力
    如果你使用的时MySQL,就可以使用MySQL自带的分区表功能，当然可以考虑自己做垂直拆分(分库)，水平拆分(分表)，垂直+水平拆分(分库分表)。
-   ![](./files\数据库调优策略-3.png)
-   ![](./files\数据库调优策略-4.png)
+   ![](./files/数据库调优策略-3.png)
+   ![](./files/数据库调优策略-4.png)
         
 ## 优化MySQL服务器
 ### 优化服务器硬件
@@ -96,23 +96,23 @@ SQL查询重写包括了查询优化，等价为此重写，视图重写，条�
 设置为256M或384M.
 * table_open_cache:表示同时打开的表的个数。这个值越大，能够同时打开的比爱的个数就越多，物理内粗越大没设置就越大。默认时2402,调到512-1024
 最佳。这个值不是越大越好，因为同时打开的表太多会影响操作系统的性能。
-![table_open_cache打开表的个数](./files\数据库调优策略-5.PNG)
+![table_open_cache打开表的个数](./files/数据库调优策略-5.PNG)
 
 * query_cache_size:表示查询缓冲区的大小。可以通过在MySQL控制台观察，如果Query_lowmem_prunes的值非常大，则表明经常出现缓冲不够的情况，
 就要怎该Query_cache_size
-![query_cache_size查询缓冲区的大小](./files\数据库调优策略-6.PNG)
+![query_cache_size查询缓冲区的大小](./files/数据库调优策略-6.PNG)
 
 * query_cache_type的值时0时，所有的查询都不适应查询缓存去。但是query_cache_type=0并不会导致MySQL释放query_cache_size所配置的缓存区内存。
     * 当query_cache_type=1时，所有的查询都将使用查询缓存区，除非在拆线呢的语句中指定SQL_NO_CACHE,如SELECT SQL_NO_CACHE * FROM table_name;
     * 当query_cache_type=2时，只有在查询语句中使用SQL_CACHE关键字，查询才会使用查询缓存区。使用查询缓存区可以提高查询的速度，这种方
     式只适用于修改操作少且经常执行相同查询操作的情况。
 * sort_buffer_size:表示每个需要排序的线程分配的缓冲区的大小。增加这个参数的值可以提高ORDER BY 或者GROUP BY操作的速度。
-![sort_buffer_size排序缓存大小](./files\数据库调优策略-7.PNG)
+![sort_buffer_size排序缓存大小](./files/数据库调优策略-7.PNG)
 * join_buffer_size:表示联合查询操作所能使用的缓冲区大小，和sort_buffer_size一样，该参数对于的分配内存也时每个连接独享的。
-![join_buffer_size](./files\数据库调优策略-9.PNG)
+![join_buffer_size](./files/数据库调优策略-9.PNG)
 * read_buffer_size:表示每个线程连续扫描时为扫描的每个表分配的缓冲区的大小(字节)。当线程从表中连续读取记录时需要用到这个缓冲区。SET SESSION
 read_buffer_size=n可以临时设置该参数的值
-![join_buffer_size](./files\数据库调优策略-8.PNG)
+![join_buffer_size](./files/数据库调优策略-8.PNG)
 * innodb_flush_log_at_trx_commit:表示合适将缓冲区的数据写入日志文件，并且将日志文件写入磁盘中。该参数对于innodb存储引擎非常重要。该参数有3个值
 分别为0、1和2.该参数的默认值时1
     * 值为0时，表示每秒1次的频率将数据写入日志文件并将日志文件写入磁盘。每个事务的commit并不会触发前面的的任何操作。该模式速度最快，但是不安全，
@@ -121,25 +121,25 @@ read_buffer_size=n可以临时设置该参数的值
     或事务外的指令都需要把日志写入磁盘。
     * 值为2时，表示每次提交事务时将数据写入日志文件，每隔1秒将日志文件写入磁盘。该模式速度较快，也是比0安全，只有在操作系统奔溃或者系统断电
     的情况下，上一秒钟所有的事务数据可能丢失。
-![innodb_flush_log_at_trx_commit](./files\数据库调优策略-10.PNG)          
+![innodb_flush_log_at_trx_commit](./files/数据库调优策略-10.PNG)          
         
 * innodb_log_buffer_size:这是innodb存储引擎的事务日志所使用的缓冲区。为了提高性能，也时将信息写入Innodb Log Buffer中，当满足
 innodb_flush_log_at_trx_commit参数所设置的相应条件(或者日志缓冲区写满了)之后，才会将日志写到文件(或者同步到磁盘)中.
-![innodb_log_buffer_size](./files\数据库调优策略-11.PNG)
+![innodb_log_buffer_size](./files/数据库调优策略-11.PNG)
 * max_connections:表示允许连接到MySQL书库的最大数量，默认值时151。如果状态变量connection_errors_max_connections不为0，并且一直增长
 则说明不断有请求因数据库连接数已经达到最大值而失败，这时可以考虑增加max_connections的值。在Linux平台下，性能好的服务器，支持500-1000个
 连接不是难事，，需要根据服务器性能进行评估设定。这个连接数不是越大 越好，因为这些连接会浪费内存的资源。过多的连接可能会导致MySQL服务器僵死。        
-![max_connections](./files\数据库调优策略-12.PNG)
+![max_connections](./files/数据库调优策略-12.PNG)
 
 * back_log:用于控制MySQL监听TCP端口时设置的挤压请求栈大小。如果MySQL的链接数达到了max_connections时，新来的请求将会被存在堆栈中，一等待某
 一连接释放资源，该堆栈的数量即时back_log，如果等待连接的数量超过了back_log，将不被授予连接资源，将会报错。5.6.6版本之前默认值为50，之后的
 版本默认为50+(max_connections/5)，对于Linux系统推荐设置为小于512的整数，但最大不超过900.
 如果需要数据库在较短的时间内处理大量连接请求， 可以考虑适当增大back_log 的值。
-![back_log](./files\数据库调优策略-13.PNG)       
+![back_log](./files/数据库调优策略-13.PNG)       
         
 * thread_cache_size:线程池缓存线程数量的大小，当客户端断开连接后将当前线程缓存起来当在接到新的连接请求时快速响应无需创建新的线程 。这
 尤其对那些使用短连接的应用程序来说可以极大的提高创建连接的效率。那么为了提高性能可以增大该参数的值。默认为60，可以设置为120。        
-![thread_cache_size](.files\数据库调优策略-14.PNG)        
+![thread_cache_size](.files/数据库调优策略-14.PNG)        
 当 Threads_cached 越来越少，但 Threads_connected 始终不降，且 Threads_created 持续升高，可
 适当增加 thread_cache_size 的大小
 

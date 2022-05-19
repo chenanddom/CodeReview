@@ -1,7 +1,7 @@
 [上一章(账号管理)](./ACCOUNT_MANAGEMENT.MD)
 # MySQL逻辑架构
 MySQL的逻辑架构如下：
-![MySQL的逻辑架构](./files\逻辑架构-1.png)
+![MySQL的逻辑架构](./files/逻辑架构-1.png)
 * 连接层
 系统访问MySQL服务器前，做的第一建时就是简历TCP 连接。经过三次握手建立连接成功后，MySQL服务器对TCP传输过来的账号密码做身份认证，权限获取
     * 用户名或者密码不对，会收到一个Access denied for user错误，客户端程序结束执行
@@ -41,7 +41,7 @@ TCP 连接收到请求后，必须要分配给一个线程专门于这个客户�
 维护的底层数据执行操作，服务器通过API与存储引擎进行通信。不同的存储引擎具有的功能不同，这样
 我们可以根据自己的实际需要进行选取。
 如下图所示:
-![存储引擎](./files\逻辑架构-2.png)
+![存储引擎](./files/逻辑架构-2.png)
 
 * 存储层
 所有的数据，数据库、表的定义，表的每一行的内容，索引，都是存在文件系统上，以文件的方式存
@@ -54,7 +54,7 @@ DAS、NAS、SAN等各种存储系统。
 
 ## SQL执行流程.
 SQL执行流程
-![SQL执行流程](./files\逻辑架构-3.png)
+![SQL执行流程](./files/逻辑架构-3.png)
 * SQL执行流程
     1. 查询缓存：Server 如果在查询缓存中发现了这条 SQL 语句，就会直接将结果返回给客户端；如果没
     有，就进入到解析器阶段。需要说明的是，因为查询缓存往往效率不高，所以在 MySQL8.0 之后就抛弃
@@ -77,7 +77,7 @@ SQL执行流程
      的字符串分别是什么，代表什么。 MySQL 从你输入的"select"这个关键字识别出来，这是一个查询语句。它也要把字符串“T”识别成“表名 T”，把字符串“ID”识别成“列 ID”。
      接着，要做“ 语法分析”。根据词法分析的结果，语法分析器（比如：Bison）会根据语法规则，判断你输入的这个 SQL 语句是否满足 MySQL 语法。
      select department_id,job_id,avg(salary) from employees group by department_id;
-     如果SQL语句正确，则会生成一个这样的语法树：![解析器](./files\逻辑结构-4.png)
+     如果SQL语句正确，则会生成一个这样的语法树：![解析器](./files/逻辑结构-4.png)
      
      3. 优化器：在优化器中会确定 SQL 语句的执行路径，比如是根据全表检索，还是根据索引检索等。在查询优化器中，可以分为逻辑查询优化阶段和物理查询优化阶段。
      
@@ -100,7 +100,7 @@ show profies;
 -- 查看指定的查询ID
 show profile for queryId
 ```
-![profile开启](./files\逻辑结构-5.png)
+![profile开启](./files/逻辑结构-5.png)
 
 
 ### MySQL5.7的执行原理
@@ -120,10 +120,10 @@ show profiles;
 -- 根据具体的query id查看profile
 show profile for query id
 ```
-![查看profile](./files\逻辑结构-6.png)
+![查看profile](./files/逻辑结构-6.png)
 
 ## SQL语法的顺序
-![SQL语法的顺序](./files\逻辑结构-7.png)
+![SQL语法的顺序](./files/逻辑结构-7.png)
 
 
 

@@ -101,7 +101,7 @@ BEGIN
 END $
 DELIMITER ;
 ```
-![存储过程示例1](./files\存储过程-1.PNG)
+![存储过程示例1](./files/存储过程-1.PNG)
 
 
 

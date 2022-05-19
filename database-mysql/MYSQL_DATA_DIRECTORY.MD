@@ -2,7 +2,7 @@
 
 # MySQL数据目录
 Linux上MySQL安装好之后默认的数据库目录如下:
-![MySQL默认的数据目录](./files\数据目录-1.PNG)
+![MySQL默认的数据目录](./files/数据目录-1.PNG)
 
 * 相关的命令目录:
 /usr/bin(mysqladmin,mysqlbinlog,mysqldump)和/usr/sbin
@@ -29,19 +29,19 @@ Linux上MySQL安装好之后默认的数据库目录如下:
     
 * 数据库在文件系统中的表示
 [MySQL5.7的数据目录
-![MySQL5.7的数据目录](./files\数据目录-3.PNG)
+![MySQL5.7的数据目录](./files/数据目录-3.PNG)
 db.opt就是数据库相关的信息
 *.frm表结构文件、
 *.ibd数据文件
 
 MySQL8.0的数据目录
-![MySQL8.0的数据目录](./files\数据目录-2.PNG)
+![MySQL8.0的数据目录](./files/数据目录-2.PNG)
 Mysql8.0之后就不需要将数据库的信息，表结构和数据文件分文件存储，这些数据都是存储在了.ibd文件内
 Oracle官方将frm文件的信息及更多地下逆袭移动到了叫做序列化字典信息(Serialized Dictionary Information,SDI),SDI被写在了ibd文件内部。
 为了能够从ibd文件内提取到sdi数据，官方提高了ibd2sdi程序提取这些数据，操作如下：
-![提起sdi数据](./files\数据目录-4.PNG)
+![提起sdi数据](./files/数据目录-4.PNG)
 
-![打开sdi](./files\数据目录-5.PNG)
+![打开sdi](./files/数据目录-5.PNG)
 
 * MyISAM存储引擎
 

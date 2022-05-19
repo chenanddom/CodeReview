@@ -36,7 +36,7 @@ DESC emp_dept;
 
 SELECT *FROM emp_dept;
 ```
-![视图](./files\视图-1.PNG)
+![视图](./files/视图-1.PNG)
 
 
 * 注意
@@ -72,9 +72,9 @@ emp.employee_id,emp.phone_number,emp.last_name,dept.department_name
 FROM employees emp LEFT JOIN departments dept
 ON emp.department_id = dept.department_id;
 ```
-![方式1修改后的视图的结果](./files\视图-2.PNG)
+![方式1修改后的视图的结果](./files/视图-2.PNG)
 
-![方式2修改视图后的结果](./files\视图-3.PNG)
+![方式2修改视图后的结果](./files/视图-3.PNG)
 
 ## 删除视图
 * 删除是只是删除视图的定义，并不会删除基表的数据

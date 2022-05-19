@@ -43,8 +43,8 @@ DESC student;
 
 SHOW INDEX FROM student;
 ```
-![查看表结构](./files\唯一索引-1.PNG)
-![查看表索引](./files\唯一索引-2.PNG)
+![查看表结构](./files/唯一索引-1.PNG)
+![查看表索引](./files/唯一索引-2.PNG)
 
 ## CHECK约束
 CHECK的作用是检查某个字段的值是否符合要求，一般都是指值的范围
@@ -115,8 +115,8 @@ INSERT INTO emp(emp_id,emp_name,dept_id) VALUES (4,'张三',1004)
 SELECT *FROM dept;
 SELECT *FROM emp;
 ```
-![dept的数据](./files\外键引用-1.PNG)
-![emp表的数据](./files\外键引用-2.PNG)
+![dept的数据](./files/外键引用-1.PNG)
+![emp表的数据](./files/外键引用-2.PNG)
     
 * 建表后添加外键
 一般情况下，表与表的关联都是提前设计好了的，因此，会在创建表的时候就把外键约束定义好。不
@@ -136,8 +136,8 @@ SELECT * FROM information_schema.`TABLE_CONSTRAINTS` WHERE table_name='emp3';
 -- 查看索引(MyAQL对外键约束进行会添加一个普通索引，如果需要删除外加你约束，需要我们手动的对外键自动添加的索引进行删除)
 SHOW INDEX FROM emp3;
 ```
-![sql查看表的相关外键信息](./files\外键引用-3.PNG)       
-![sql查看你索引信息](./files\外键引用-3.PNG)       
+![sql查看表的相关外键信息](./files/外键引用-3.PNG)       
+![sql查看你索引信息](./files/外键引用-3.PNG)       
 
 ### 外键约束等级
 
@@ -174,9 +174,9 @@ SELECT * FROM information_schema.`TABLE_CONSTRAINTS` WHERE table_name='emp3';
 UPDATE dept SET dept_id=1004 WHERE dept_id=1003;
 
 ```
-![emp3原数据](./files\约束级别-1.PNG)
-![dept原数据](./files\约束级别-2.PNG)
-![dept更新后数据](./files\约束级别-3.PNG)
-![emp3更新后数据](./files\约束级别-4.PNG)
+![emp3原数据](./files/约束级别-1.PNG)
+![dept原数据](./files/约束级别-2.PNG)
+![dept更新后数据](./files/约束级别-3.PNG)
+![emp3更新后数据](./files/约束级别-4.PNG)
 
 [下一章(视图)](./VIEW.MD)

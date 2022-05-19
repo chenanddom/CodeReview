@@ -14,13 +14,13 @@
 ```sql
 select *from employees,departments
 ```
-![关联查询不添加关联条件出现笛卡尔积错误](./files\association_query-1.PNG)
+![关联查询不添加关联条件出现笛卡尔积错误](./files/association_query-1.PNG)
 
 * 连接查询添加连接条件之后
 ```sql
 SELECT *FROM employees emp,departments dept WHERE emp.department_id = dept.department_id;
 ```
-![连接查询添加连接条件之后](./files\association_query-2.PNG)
+![连接查询添加连接条件之后](./files/association_query-2.PNG)
 
 ## 连接分类
 
@@ -111,18 +111,18 @@ UNION 操作符返回两个查询的结果集的并集，去除重复记录。
 
     * UNION
     
-    ![UNION](./files\association_query-3.PNG)
+    ![UNION](./files/association_query-3.PNG)
     
     * UNION ALL
     
-    ![UNION ALL](./files\association_query-4.PNG)
+    ![UNION ALL](./files/association_query-4.PNG)
 
 
 
 
 
 ## 7种SQL JOIN操作
-![7种SQL JOIN操作](./files\association_query-5.PNG)
+![7种SQL JOIN操作](./files/association_query-5.PNG)
 
 * 左上图的实现
 ```sql

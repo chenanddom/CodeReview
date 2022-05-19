@@ -16,7 +16,7 @@ mysql –h hostname|hostIP –P port –u username –p DatabaseName –e "SQL�
 ```sql
 mysql -uroot -p -hlocalhost -P3306 mysql -e "select host,user from user"
 ```
-![连接执行sql](./files\账号-1.PNG)
+![连接执行sql](./files/账号-1.PNG)
 
 ## 创建用户
 语法形式如下:
@@ -93,13 +93,13 @@ show privileges;
 ```sql
 GRANT 权限1，权限2，权限3...权限n ON 数据库名.表名 TO 用户名@用户地址 [IDENTIFIED BY '密码口令']
 ```
-![用户没赋权时的样子](./files\权限-2.PNG)
+![用户没赋权时的样子](./files/权限-2.PNG)
 使用下面的语句赋权给该用户
 ```sql
 -- 将dbtest1数据库下的所有表的查看和更新的权限赋值给chendom用户
 GRANT SELECT ,UPDATE ON dbtest1.* TO 'chendom'@'%'
 ```
-![给chendom这个用户赋权读取和修改的权限后](./files\权限-3.PNG)
+![给chendom这个用户赋权读取和修改的权限后](./files/权限-3.PNG)
 
 ### 回收权限
 收回权限就是取消已经赋予用户的某些权限。收回用户不必要的权限可以在一定程度上保证系统的安全
@@ -115,7 +115,7 @@ REVOKE 权限1，权限2...权限n ON 数据库.表名 RFOM 用户名@用户地�
 -- 回收权限后，需要第二次登录后才有效果
 REVOKE UPDATE ON dbtest1.employees FROM 'chendom'@'%';
 ```
-![回收权限后的效果](./files\权限-4.PNG)
+![回收权限后的效果](./files/权限-4.PNG)
 
 
 

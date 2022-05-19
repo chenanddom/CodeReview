@@ -39,7 +39,7 @@ INSERT INTO int_test2(f1,f2,f3) VALUES(1,123,123);
 INSERT INTO int_test2(f3)VALUES(12345678);
 
 ```
-![sql执行结果](./files\数据类型-1.PNG)
+![sql执行结果](./files/数据类型-1.PNG)
 
 * UNSIGNED:无符号类型所有的整数类型都有一个可选的属性UNSIGNED（无符号属性），无
 符号整数类型的最小取值为0。所以，如果需要在MySQL数据库中保存非负整数值时，可以将整
@@ -111,7 +111,7 @@ INSERT INTO float_test4 VALUES(0.47),(0.44),(0.19);
 SELECT SUM(f1) FROM float_test4;
 
 ```
-![上面SQL执行结果](./files\数据类型-2.PNG)
+![上面SQL执行结果](./files/数据类型-2.PNG)
 
 结论:
 ```text
@@ -147,7 +147,7 @@ DESC float_test5;
 insert into float_test5 values(123.123,123.123);
 select *from float_test5;
 ```
-![SQL执行结果](./files\数据类型-3.PNG)
+![SQL执行结果](./files/数据类型-3.PNG)
 
 ## 位类型
 BIT类型中存储的时二进制值，类似010110
@@ -169,7 +169,7 @@ insert into bit_test1(f2) values (23);
 -- 此处如果需要以十进制显示，那么就可以在字段后面+0
 select f1+0,f2+0 from bit_test1;
 ```
-![sql执行结果](./files\数据类型-4.PNG)
+![sql执行结果](./files/数据类型-4.PNG)
 
 ## 日期类型
 
@@ -211,7 +211,7 @@ INSERT INTO date_time_test1 VALUES (0,'0');
 
 select *from date_time_test1;
 ```
-![sql执行结果](./files\数据类型-5.PNG)
+![sql执行结果](./files/数据类型-5.PNG)
 
 * DATE类型
 DATE类型表示日期，没有时间的部分，格式位YYYY-MM-DD，分别表示年月日。日期需要3个字节存储空间.在项Date类型的饿字段中插入数据时，同样
@@ -232,7 +232,7 @@ INSERT INTO date_time_test2 VALUES ('00-02-22'),('69-02-22'),('70-02-22'),('0002
 
 SELECT *FROM date_time_test2;
 ```
-![sql执行结果](./files\数据类型-6.PNG)
+![sql执行结果](./files/数据类型-6.PNG)
 
 * DATETIME
 DATETIME类型在所有的日期时间类型中占用的存储空间最大，总共需要8 个字节的存储空间。在格式上
@@ -261,7 +261,7 @@ INSERT INTO date_time_test3 VALUES (CURDATE()),(NOW()),(CURRENT_TIMESTAMP());
 
 SELECT *FROM date_time_test3;
 ```
-![datetime类型sql执行结果](./files\数据类型-7.PNG)
+![datetime类型sql执行结果](./files/数据类型-7.PNG)
 
 
 * TIMESTAMP类型
@@ -288,7 +288,7 @@ INSERT INTO date_time_test4 VALUES ('990101030405');
 
 select *from date_time_test4;
 ```
-![timestamp类型sql执行结果](./files\数据类型-8.PNG)
+![timestamp类型sql执行结果](./files/数据类型-8.PNG)
 
 *  TIMESTAMP和DATETIME的区别：
 TIMESTAMP存储空间比较小，表示的日期时间范围也比较小
@@ -350,7 +350,7 @@ insert into text_test1(c1) value('ab  ')
 select *from text_test1;
 ```   
 
-![SQL执行结果](./files\数据类型-9.PNG)
+![SQL执行结果](./files/数据类型-9.PNG)
 *
     * VARCHAR类型
         * VARCHAR(M) 定义时， 必须指定长度M，否则报错。
@@ -371,7 +371,7 @@ INSERT INTO text_test2(NAME) VALUES ('测试3  '),('多方位测试3')
 select *from text_test2;
 
 ```
-![sql执行结果](./files\数据类型-10.PNG)
+![sql执行结果](./files/数据类型-10.PNG)
 
 **使用场景**
 *
@@ -423,7 +423,7 @@ INSERT INTO enum_test1 VALUES('test')
 
 SELECT *FROM enum_test1;
 ```
-![sql执行结果](./files\数据类型-11.PNG)
+![sql执行结果](./files/数据类型-11.PNG)
 
 
 [下一章(外键约束)](./CONSTRAINT.MD)

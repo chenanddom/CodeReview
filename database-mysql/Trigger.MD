@@ -37,7 +37,7 @@ INSERT INTO trigger_test(emp_name) values('zhaoliu');
 
 SELECT *FROM trigger_back_test;
 ```
-![触发器执行结果](./files\触发器-1.PNG)
+![触发器执行结果](./files/触发器-1.PNG)
 
 * 触发器的优缺点
     * 优点:1. 触发器可以确保数据的完整性 2.触发器可以帮助我们记录操作日志 3. 触发器可以用在操作数据前，对数据进行合法性校验.
