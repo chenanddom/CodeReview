@@ -18,6 +18,7 @@
         <module>domain-driven-development</module>
         <module>database-mysql</module>
         <module>long-connection-websocket</module>
+        <module>kubernetes-learning</module>
     </modules>
     <dependencyManagement>
         <dependencies>
