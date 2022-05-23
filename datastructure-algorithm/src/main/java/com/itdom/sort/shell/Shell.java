@@ -17,7 +17,6 @@ public class Shell {
                     }
                 }
             }
-
             h /= 2;
         }
 
