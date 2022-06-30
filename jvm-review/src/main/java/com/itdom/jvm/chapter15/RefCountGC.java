@@ -1,5 +1,7 @@
 package com.itdom.jvm.chapter15;
 
+import java.util.Scanner;
+
 /**
  * jvm并没有使用引用计数算法进行垃圾回收
  */
@@ -21,6 +23,7 @@ public class RefCountGC {
          */
         aRef = null;
         bRef = null;
-        System.gc();
+//        System.gc();
+        System.out.println(new Scanner(System.in).next());
     }
 }
