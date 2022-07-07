@@ -19,6 +19,7 @@
         <module>database-mysql</module>
         <module>long-connection-websocket</module>
         <module>kubernetes-learning</module>
+        <module>framework-webflux</module>
     </modules>
     <dependencyManagement>
         <dependencies>

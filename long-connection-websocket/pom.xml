@@ -14,11 +14,11 @@
 
     <dependencyManagement>
         <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-dependencies</artifactId>
-                    <version>2.3.5.RELEASE</version>
-                    <type>pom</type>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.3.5.RELEASE</version>
+                <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
@@ -47,22 +47,43 @@
             <artifactId>fastjson</artifactId>
         </dependency>
     </dependencies>
-<repositories>
-    <repository>
-        <id>alimaven</id>
-        <name>aliyun maven</name>
-        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-    </repository>
-    <repository>
-        <id>activiti-repos2</id>
-        <name>Activiti Repository 2</name>
-        <url>https://app.camunda.com/nexus/content/groups/public</url>
-    </repository>
-    <repository>
-        <id>springsource-repos</id>
-        <name>SpringSource Repository</name>
-        <url>http://repo.spring.io/release/</url>
-    </repository>
-</repositories>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+<!--                <configuration>-->
+<!--                    <includeSystemScope>true</includeSystemScope>-->
+<!--                </configuration>-->
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>activiti-repos2</id>
+            <name>Activiti Repository 2</name>
+            <url>https://app.camunda.com/nexus/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>springsource-repos</id>
+            <name>SpringSource Repository</name>
+            <url>http://repo.spring.io/release/</url>
+        </repository>
+    </repositories>
 </project>
