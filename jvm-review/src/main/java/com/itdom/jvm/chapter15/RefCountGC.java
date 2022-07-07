@@ -1,5 +1,7 @@
 package com.itdom.jvm.chapter15;
 
+import org.springframework.util.StopWatch;
+
 import java.util.Scanner;
 
 /**
@@ -14,6 +16,8 @@ public class RefCountGC {
 
 
     public static void main(String[] args) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         RefCountGC aRef = new RefCountGC();
         RefCountGC bRef = new RefCountGC();
         aRef.reference = bRef;
@@ -24,6 +28,12 @@ public class RefCountGC {
         aRef = null;
         bRef = null;
 //        System.gc();
+        stopWatch.stop();
+        System.out.println(stopWatch.getTotalTimeMillis());
         System.out.println(new Scanner(System.in).next());
     }
+
+
+
+
 }
