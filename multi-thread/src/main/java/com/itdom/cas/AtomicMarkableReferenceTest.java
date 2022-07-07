@@ -14,11 +14,11 @@ public class AtomicMarkableReferenceTest {
         new Thread(()->{
             log.debug("start...");
             garbageBad.setDesc("空袋子");
-            ref.compareAndSet(garbageBad,garbageBad,true,false);
+            log.info("阿姨更换袋子:{}",ref.compareAndSet(garbageBad, garbageBad, true, false));
             log.debug(garbageBad.toString());
 
         },"保洁阿姨").start();
-        Thread.sleep(1000L);
+//        Thread.sleep(1000L);
         boolean success = ref.compareAndSet(prev, new GarbageBad("空垃圾袋"), true, false);
         log.debug("换袋子了吗？{}",success);
         log.debug(ref.getReference().toString());
