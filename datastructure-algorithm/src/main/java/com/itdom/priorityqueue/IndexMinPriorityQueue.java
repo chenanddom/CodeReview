@@ -115,24 +115,24 @@ public class IndexMinPriorityQueue<T extends Comparable<T>> {
         return minIndex;
     }
 
-    //删除索引i关联的元素
-    public void delete(int i) {
-        //找出i在pa中的索引
-        int k = pq[i];
-        //把pq中的索引k处的值和索引N处的值交换
-        exchange(k, N);
-        //删除qp中索引的pq[N]处的值
-        qp[pq[N]] = -1;
-        //删除pq中索引N处的值
-        pq[N] = -1;
-        //删除item是中索引i处的值
-        items[i] = null;
-        //元素数量-1
-        N--;
-        sink(k);
-        swim(k);
+        //删除索引i关联的元素
+        public void delete(int i) {
+            //找出i在pa中的索引
+            int k = pq[i];
+            //把pq中的索引k处的值和索引N处的值交换
+            exchange(k, N);
+            //删除qp中索引的pq[N]处的值
+            qp[pq[N]] = -1;
+            //删除pq中索引N处的值
+            pq[N] = -1;
+            //删除item是中索引i处的值
+            items[i] = null;
+            //元素数量-1
+            N--;
+            sink(k);
+            swim(k);
 
-    }
+        }
 
     //把与索引i关联的元素修改为为t
     public void changeItem(int i, T t) {
