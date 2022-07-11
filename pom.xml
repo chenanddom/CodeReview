@@ -20,6 +20,7 @@
         <module>long-connection-websocket</module>
         <module>kubernetes-learning</module>
         <module>framework-webflux</module>
+        <module>mq-rabbitmq</module>
     </modules>
     <dependencyManagement>
         <dependencies>
