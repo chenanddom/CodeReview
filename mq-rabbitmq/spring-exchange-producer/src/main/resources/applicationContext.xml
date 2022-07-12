@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+<!--    配置链接工厂-->
+    <rabbit:connection-factory id="connectionFactory" host="127.0.0.1" port="5672" password="123456" username="itdom" virtual-host="/itdom"></rabbit:connection-factory>
+<!--    创建一个名为exchange交换机 ,auto-declare="true"如果交换机不存在就创建一个-->
+    <rabbit:topic-exchange name="topicExchange" auto-declare="true"></rabbit:topic-exchange>
+<!--    Spring封装了rabbitmqtemplate来简化数据发送的过程-->
+    <rabbit:template id="template" connection-factory="connectionFactory" exchange="topicExchange"></rabbit:template>
+    <bean id="newsProducer" class="com.itdom.rabbitmq.producer.NewsProducer">
+        <property name="rabbitTemplate" ref="template"></property>
+    </bean>
+<!--    所有产生的数据在可视化控制台显示-->
+    <rabbit:admin connection-factory="connectionFactory"></rabbit:admin>
+
+</beans>

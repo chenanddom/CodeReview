@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+<!--    配置链接工厂-->
+    <rabbit:connection-factory id="connectionFactory" host="127.0.0.1" port="5672" password="123456" username="itdom" virtual-host="/itdom"></rabbit:connection-factory>
+<!--   将消费者消费的数据都显示在监控平台 -->
+    <rabbit:admin connection-factory="connectionFactory"></rabbit:admin>
+<!-- 声明队列-->
+    <rabbit:queue id="topicQueue" name="topicQueue" auto-declare="true" auto-delete="false" durable="false" exclusive="false"></rabbit:queue>
+
+    <rabbit:topic-exchange name="topicExchange" auto-declare="true">
+        <rabbit:bindings>
+            <rabbit:binding queue="topicQueue" pattern="cn.*"></rabbit:binding>
+            <rabbit:binding queue="topicQueue" pattern="us.*"></rabbit:binding>
+
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+    <bean id="newsConsumer" class="com.itdom.rabbitmq.consumer.NewsConsumer"></bean>
+    <!--  启动消费者后，spring会自动监听队列中的数据，将数据转化成News对象  -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener ref="newsConsumer" method="receiveNews" queue-names="topicQueue"></rabbit:listener>
+    </rabbit:listener-container>
+</beans>

@@ -48,7 +48,9 @@ public class WeatherBureau {
         channel.addReturnListener(new ReturnCallback() {
             public void handle(Return returnMessage) {
                 System.out.println("==============================================");
-                System.out.println("错误编码:"+returnMessage.getReplyCode()+"-"+"错误描述:"+returnMessage.getReplyText());
+                System.out.println("return编码:"+returnMessage.getReplyCode()+"-"+"return描述:"+returnMessage.getReplyText());
+                System.out.println("交换机:"+returnMessage.getExchange()+"-路由key"+returnMessage.getRoutingKey());
+                System.out.println("消息的内容"+new String(returnMessage.getBody()));
                 System.out.println("==============================================");
 
             }
