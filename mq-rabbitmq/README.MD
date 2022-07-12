@@ -62,3 +62,19 @@
     * 主题模式下，模糊匹配表达式规则为 1. * 匹配单个关键字。2. #匹配所有关键字。
     * 主题模式下交换机的类型成为topic
 * 6. RPC    
+
+
+
+## RabbitMQ消息确认机制
+
+* RabbitMQ在床底消息的过程中充当了代理人(Broker)的角色，那生产者(producer)怎样知道消息被正确的投递到Broker了呢？
+    * RabbitMQ提供了监听器(Listener)来接收消息投递的状态。
+    * 消息确认涉及两种状态:Confirm与Return。
+    
+### Confirm & Return
+
+* Confirm代表了生成者将消息送到Broker时产生的状态，后续会出现两种情况：
+    * ack代表Broker已经接收了数据。
+    * nack代表Broker拒绝接收消息。原因有多种。队列满了，限流，IO异常...
+* Return 代表了消息被BroKer周王朝接收(ack)后，但是Broker没有对于的队列进行投递时产生的状态，消息退回给生成者。
+* 注意：上面的两种装丰台只代表了生产者与Broker之间的消息投递的情况。与消费者是否接收/确认消息无关。    
