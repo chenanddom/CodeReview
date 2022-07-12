@@ -7,4 +7,5 @@ public class RabbitmqConstants {
     public static final String WEATHER_BAIDU = "baidu_queue";
     public static final String WEATHER_SINA = "sina_queue";
     public static final String WEATHER_EXCHANGE_ROUTING = "weather_routing";
+    public static final String WEATHER_EXCHANGE_TOPIC = "weather_topic";
 }
