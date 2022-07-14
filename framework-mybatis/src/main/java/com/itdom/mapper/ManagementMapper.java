@@ -3,6 +3,7 @@ package com.itdom.mapper;
 import com.itdom.entity.Management;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.session.RowBounds;
 
 import java.util.List;
 import java.util.Map;
@@ -17,4 +18,6 @@ public interface ManagementMapper {
     public List<Management> getById3(@Param("id") Integer id);
 
     public List<Management> getById4(Map<String,Object> item);
+
+    public List<Management> list();
 }

@@ -53,4 +53,50 @@ List<Management> managementList2 = mapper.getById2(1);
 ```
 
 
+条件三:要求分页参数必须相同，否则无法命中缓存。缓存粒度是整个分页擦汗寻结果，二不是结果中的每个对象。
+```java
+        RowBounds rowBounds = new RowBounds(0,1);
+        sqlSession.selectList("com.itdom.mapper.ManagementMapper.list",null,rowBounds);
+        RowBounds rowBounds2 = new RowBounds(0,2);
+        sqlSession.selectList("com.itdom.mapper.ManagementMapper.list",null,rowBounds2);
+```
+```xml
+    <select id="list" resultType="com.itdom.entity.Management">
+        select * from <include refid="tbName"></include> where 1=1
+    </select>
+```
+执行结果:
+```text
+22:13:24.876 [main] DEBUG org.apache.ibatis.datasource.pooled.PooledDataSource - Created connection 1894369629.
+22:13:24.876 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@70e9c95d]
+22:13:24.880 [main] DEBUG com.itdom.mapper.ManagementMapper.list - ==>  Preparing: select * from management where 1=1
+22:13:24.930 [main] DEBUG com.itdom.mapper.ManagementMapper.list - ==> Parameters: 
+22:13:24.962 [main] DEBUG com.itdom.mapper.ManagementMapper.list - ==>  Preparing: select * from management where 1=1
+22:13:24.962 [main] DEBUG com.itdom.mapper.ManagementMapper.list - ==> Parameters: 
+```
+条件四:要求传递的JDBC的SQL 必须完全相同
+```text
+<select id="getById" parameterType="..." resultType="....">
+SELECT * FROM management
+<where>
+<if test="type==1">id=#{id}</if>
+<if test="type==2">1=1 AND id=#{id}</if>
+</where
+
+</select>
+
+```
+
+### 一级缓存的生命周期
+mybatis缓存的产生都是sqlSession的select的相关方法，如果调用的是sqlSession的update的方法，那么缓存就会失效
+
+![sqlSession的update方法导致缓存失效](./files/mybatis-cache-invalid-1.png)
+
+![sqlSession关闭导致缓存失效](./files/mybatis-cache-invalid-2.png)
+
+![事务提交会清空缓存](./files/mybatis-cache-invalid-3.png)
+
+![事务回滚缓存失效](./files/mybatis-cache-invalid-4.png)
+
+更新数据会导致缓存失效
 
