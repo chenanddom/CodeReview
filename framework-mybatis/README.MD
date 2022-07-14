@@ -16,7 +16,41 @@ rollback都会轻触缓存
 ```
 
 
+### MyBatis命中缓存的规则
+条件一:要求查询的StatementId必须相同，否则无法命中缓存，及时两个拆线呢语句，参数都完全一样。
+![statementId](./files/mybatis-statementId-1.png)
+```java
+ManagementMapper mapper = sqlSession.getMapper(ManagementMapper.class);
+List<Management> managementList = mapper.getById(1);
+List<Management> managementList2 = mapper.getById2(1);
+```
 
+条件二:要求传递给SQL的查询参数必须相同，否则无法命中缓存
+```xml
+    <select id="getById4" parameterType="java.util.Map" resultType="com.itdom.entity.Management">
+        select * from <include refid="tbName"></include> where id=#{id}
+    </select>
+```
+
+```java
+        ManagementMapper mapper = sqlSession.getMapper(ManagementMapper.class);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id",1);
+        map.put("test",2);
+        List<Management> managementList = mapper.getById4(map);
+        Map<String, Object> map2 = new HashMap<String, Object>();
+        map2.put("id",1);
+        map2.put("test",2);
+        List<Management> managementList2 = mapper.getById4(map2);
+```
+执行结果如下:
+```text
+21:59:26.146 [main] DEBUG org.apache.ibatis.transaction.jdbc.JdbcTransaction - Setting autocommit to false on JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@41a0aa7d]
+21:59:26.161 [main] DEBUG com.itdom.mapper.ManagementMapper.getById4 - ==>  Preparing: select * from management where id=?
+21:59:26.210 [main] DEBUG com.itdom.mapper.ManagementMapper.getById4 - ==> Parameters: 1(Integer)
+21:59:26.245 [main] DEBUG com.itdom.mapper.ManagementMapper.getById4 - <==      Total: 1
+```
 
 
 
