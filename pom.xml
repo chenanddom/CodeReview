@@ -21,6 +21,7 @@
         <module>kubernetes-learning</module>
         <module>framework-webflux</module>
         <module>mq-rabbitmq</module>
+        <module>framework-mybatis</module>
     </modules>
     <dependencyManagement>
         <dependencies>
