@@ -100,3 +100,47 @@ mybatis缓存的产生都是sqlSession的select的相关方法，如果调用的
 
 更新数据会导致缓存失效
 
+
+[一级缓存源码剖析](./ANALYSIS_1CACHE_SOURCE_CODE.MD)
+ 
+
+
+
+
+
+
+### MyBatis与Spring集成
+
+* 未开启事务
+    每次请求，Spring都会关闭旧的session再创建新得session，所以此时一级缓存是无效的
+* 开启事务
+    在一个事务内，Spring通过ThreadLocal始终使用同一个session，此时以及欢子啊事务内是有效的。
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        
