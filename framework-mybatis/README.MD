@@ -126,13 +126,45 @@ mybatis缓存的产生都是sqlSession的select的相关方法，如果调用的
     
     
     
+## MyBatis二级缓存
+
+### 二级缓存的命中规则
+MyBatis中的二级缓存在建立在SqlSessionFactory里面的，所以，如果不是同一个sqlsessionFactory的情况下就无法实现二级缓存的饿重用。
+除此之外，它的命中规则也是和以及缓存是一样的，包括statementId,参数，分页参数，sql语句，环境等。    
     
     
     
+### MyBatis二级缓存的生命周期
+二级缓存产生的条件
+    1. 满足一级缓存的产生条件
+    2. close Session或者commit session
+* 清除二级缓存都得条件
+    * 创建新的sqlsession,
+    * 提交事务 commit
+    * update操作
+* 注意，回滚rollback和clearCache无法清除缓存
+
+* sql标签是否缓存数据
+```xml
+<!-- useCache="true"表示查询使用缓存 -->
+    <select id="selectNoneClearCache" resultType="com.itdom.entity.Management" useCache="true">
+        select * from <include refid="tbName"></include> where id=#{id}
+    </select>
+<!--表示不清除缓存    -->
+    <update id="updateById" flushCache="false">
+        update <include refid="tbName"></include> set username="张三" where id=#{id}
+    </update>
+```            
     
-    
-    
-    
+### eviction清除策略
+LRU 最近最少使用:移除最长实践不被使用的对象 LinkHashMap
+FIFO 先进先出:按照对象对象进入缓存的顺序来移除它们 LinkedList
+SOFT 软引用:基于GC和软引用规则移除对象 SoftReference
+WEAK 弱引用：基于GC和弱引用规则移除对象 WeakReference
+
+SIZE引用数目
+缓存引用的最大数目，默认是1024
+当缓存引用达到最大数目的时候，按照eviction设定的策略执行清除    
     
     
     

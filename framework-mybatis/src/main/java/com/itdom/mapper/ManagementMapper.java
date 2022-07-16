@@ -11,7 +11,7 @@ import java.util.Map;
 @Mapper
 public interface ManagementMapper {
 
-    public List<Management> getById(@Param("id") Integer id);
+    public Management getById(@Param("id") Integer id);
 
     public List<Management> getById2(@Param("id") Integer id);
 
@@ -20,4 +20,16 @@ public interface ManagementMapper {
     public List<Management> getById4(Map<String,Object> item);
 
     public List<Management> list();
+
+    public Management selectNoneClearCache(@Param("id") Integer id);
+
+    public Integer updateById(@Param("id")Integer id);
+
+    public Management findById1(@Param("id")Integer id);
+
+    public Management findById2(@Param("id")Integer id);
+
+
+
+
 }

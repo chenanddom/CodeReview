@@ -62,7 +62,7 @@ public class MybatisApplicationTest {
 //        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(stream);
 //        SqlSession sqlSession = sqlSessionFactory.openSession();
         ManagementMapper mapper = sqlSession.getMapper(ManagementMapper.class);
-        List<Management> managementList = mapper.getById(1);
+        Management managementList = mapper.getById(1);
         List<Management> managementList2 = mapper.getById2(1);
     }
 
