@@ -22,6 +22,7 @@
         <module>framework-webflux</module>
         <module>mq-rabbitmq</module>
         <module>framework-mybatis</module>
+        <module>database-redis</module>
     </modules>
     <dependencyManagement>
         <dependencies>
