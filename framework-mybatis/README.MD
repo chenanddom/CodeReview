@@ -164,7 +164,11 @@ WEAK 弱引用：基于GC和弱引用规则移除对象 WeakReference
 
 SIZE引用数目
 缓存引用的最大数目，默认是1024
-当缓存引用达到最大数目的时候，按照eviction设定的策略执行清除    
+当缓存引用达到最大数目的时候，按照eviction设定的策略执行清除
+
+
+## MyBatis二级缓存的源码剖析
+[MyBatis二级缓存的源码剖析](./ANALYSIS_2CACHE_SOURCE_CODE.MD)    
     
     
     
