@@ -13,7 +13,6 @@
         <module>multi-thread</module>
         <module>design-pattern</module>
         <module>guava-learn</module>
-        <module>jvm-review</module>
 <!--        <module>framework-spring-boot</module>-->
         <module>domain-driven-development</module>
         <module>database-mysql</module>
@@ -23,6 +22,7 @@
         <module>mq-rabbitmq</module>
         <module>framework-mybatis</module>
         <module>database-redis</module>
+        <module>middlewares-nginx</module>
     </modules>
     <dependencyManagement>
         <dependencies>
@@ -30,6 +30,18 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>28.2-jre</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.3.5.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.79</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
