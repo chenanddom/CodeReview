@@ -240,3 +240,68 @@ upstream javaServers{
 		
         }
 ```
+
+* 响应数据压缩
+需要在location块进行配置
+```text
+
+# 表示打开gzip压缩算法，除此之外还有deflate(给比较老的浏览器使用),br(谷歌专业的压缩算法)
+gzip on;
+# 此处表示16个缓冲块，每个缓冲块8k,此处需要根据操作系统来配置，如果是32为的操作系统就配32 4k，如果是64位的就配置16 8k.
+gzip_buffers 16 8k;
+#压缩等级,压缩等级有1-9个，数字越大压缩比越高。
+gzip_comp_level 
+# 使用gzip的最小版本
+gzip_http_version 1.1;
+# 设置被gzip压缩的响应的最小长度。长度仅由"Content-Length"响应包头字段确定
+gzip_min_length 256;
+# 添加一个header，适配来的浏览器 Vary:Accept-Encoding
+gzip_vary on;
+# 压缩的数据类型
+gzip_types application/xhtml+xml application/xml image/avif image/webp image/apng */* application/signed-exchange text/plain text/css application/x-javascript
+# 作为反向代理时，需要针对上游的服务器返回的头信息进行压缩，‘
+# any无条件启用压缩;off为不做限制;expired 启用压缩，如果header头中包含"Expires"头信息
+# no-cache 启用压缩，如果header头中包含"Cache-Control:no-cache"头信息
+# no-store 启用压缩，如果header头中包含"Cache-Control:no-store"头信息
+#private 启用压缩，如果header头中包含"Cache-Control:private"头信息
+#no_last_modified 启用压缩，如果header头中不包含"Last-Modified"头信息
+#no_etag 启用压缩，如果header头中不包含"ETag"头信息
+#auth 启用压缩，如果header头中包含"Authorization"头信息
+gzip_proxied any;
+```
+示例:
+
+```shell script
+ location ^~/nginx {
+		gzip on;
+		# 此处表示16个缓冲块，每个缓冲块8k,此处需要根据操作系统来配置，如果是32为的操作系统就配32 4k，如果是64位的就配置16 8k.
+		gzip_buffers 16 8k;
+		#压缩等级,压缩等级有1-9个，数字越大压缩比越高。
+		gzip_comp_level 6;
+		# 使用gzip的最小版本
+		gzip_http_version 1.1;
+		# 设置被gzip压缩的响应的最小长度。长度仅由"Content-Length"响应包头字段确定
+		gzip_min_length 1;
+		# 添加一个header，适配来的浏览器 Vary:Accept-Encoding
+		gzip_vary on;
+		# 压缩的数据类型
+		gzip_types application/xhtml+xml application/xml image/avif image/webp image/apng */* application/signed-exchange text/plain text/css application/x-javascript			  
+		# 配置http的版本号，默认使用http1.0协议，需要在request中添加"Connection:keepalive" header才能够支持，而http1.1默认支持开启keepalive
+		proxy_http_version 1.1;
+		## 清除close信息
+		proxy_set_header Connection "";
+		default_type application/json;
+		# break 标识只匹配带第一条就返回，不会继续往下执行匹配
+		rewrite  ^/nginx/([0-9]+).html$  /nginx/get  redirect;
+	 	proxy_pass http://javaServers;
+        }
+```
+结果:
+Connection: keep-alive
+Content-Encoding: gzip
+Content-Type: text/html;charset=UTF-8
+Date: Wed, 27 Jul 2022 10:06:17 GMT
+Keep-Alive: timeout=65
+Server: openresty/1.21.4.1
+Transfer-Encoding: chunked
+Vary: Accept-Encoding
