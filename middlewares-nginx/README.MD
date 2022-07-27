@@ -209,6 +209,34 @@ keepalive 100;
 keepalive_timeout;
 一个tcp复用可以并发接收的请求个数
 keepalive_requests
+server中的配置
+proxy_http_version 1.1;#配置http的版本号，默认使用http1.0协议，需要在request中添加"Connection:keepalive" header才能够支持，而http1.1默认支持开启keepalive
+proxy_set_header Connection "";# 清除close信息
 ```shell script
+upstream javaServers{
+        # 负载均衡策略要放在第一行
+		hash $request_uri;
+		#设置和上游服务器的连接
+		keepalive 100;
+		#保留服务器连接的时间
+		keepalive_timeout 65;
+		# 一个连接可以接收的请求的个数
+		keepalive_requests 1000;
 
+	   server 172.20.0.1:10001;
+	   server 172.20.0.1:10002;
+	   
+	}	
+ location ^~/nginx {
+		# 配置http的版本号，默认使用http1.0协议，需要在request中添加"Connection:keepalive" header才能够支持，而http1.1默认支持开启keepalive
+		proxy_http_version 1.1;
+		## 清除close信息
+		proxy_set_header Connection "";
+		default_type application/json;
+		# break 标识只匹配带第一条就返回，不会继续往下执行匹配
+		rewrite  ^/nginx/([0-9]+).html$  /nginx/get  redirect;
+	 	proxy_pass http://javaServers;
+			#proxy_pass http://qq.com;
+		
+        }
 ```
