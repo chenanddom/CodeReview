@@ -163,3 +163,52 @@ firewalld-cmd --permanent --remove-rich-rule="rule family=ipv4" source address="
 			root html;
 		}	
 ```
+* 防盗链
+```shell script
+location ~*/(js|img|files) {
+        # 校验是否带referer头，如果没有就无法访问
+		valid_referers none 47.105.103.82;
+		if ($invalid_referer){
+		return 403;
+		}
+		root html;
+		}
+		}	
+```
+验证防盗链可以使用curl来验证
+```shell script
+# 加上-I就可以实现查看请求头的信息
+curl -I http://xx.xx.xx/img/docker.PNG
+# -e referer消息
+curl -e "http://www.baidu.com"  http://xx.xx.xx/img/docker.PNG
+```
+
+* keepalive
+对客户端进行配置的keepalive参数
+
+```shell script
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #keepalive_timeout  0;
+	# 表示建立一个连接，超过65s就会超时，设置为０就让keepalive失效
+    keepalive_timeout  65 65;
+	#
+	keepalive_time 1h; # 表示建立TCP连接，如果超过1个小时没有任何活动就关闭连接
+	#默认60，系统中弱有耗时操作，如果超过了send_timeout,就强制断开
+	#send_timeout 60;
+	# 一个TCP复用中可以支持并发接受的请求个数，1000就比较够用了，太多太少都不好
+	keepalive_requests 1000;
+```
+
+对上游服务器配置的keepalive的参数
+向上游服务器保留链接数
+keepalive 100;
+连接保留时间
+keepalive_timeout;
+一个tcp复用可以并发接收的请求个数
+keepalive_requests
+```shell script
+
+```
