@@ -305,3 +305,29 @@ Keep-Alive: timeout=65
 Server: openresty/1.21.4.1
 Transfer-Encoding: chunked
 Vary: Accept-Encoding
+
+## 提高Nginx性能的相关模块
+* brotli
+
+*　SSI
+
+
+
+
+
+
+### 合并文件SSI
+ssi时nginx默认包含的模块，只需要在nginx配置文件开启就可以使用
+示例：
+```shell script
+     location / {
+		# 开启SSI文件合并
+		ssi on;
+		# 关闭了SSI错误信息的输出
+		ssi_silent_errors on;
+		root   html;
+        index  index.html index.htm;
+	 }
+```
+
+
