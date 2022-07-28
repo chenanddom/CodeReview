@@ -370,7 +370,7 @@ test.html
 sent 65 bytes  received 1,179 bytes  355.43 bytes/sec
 total size is 4,861  speedup is 3.91
 # 删除文件
-[root@node2 /]# rsync -avz --delete chendom@192.168.0.189::ftp/ /usr/local/openresty/nginx/html/
+[root@node2 /]# rsync -avz --delete  --password-file=/etc/remote_rsync.pwd chendom@192.168.0.189::ftp/ /usr/local/openresty/nginx/html/
 Password: 
 receiving incremental file list
 deleting rsync.html
