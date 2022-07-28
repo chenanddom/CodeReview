@@ -329,5 +329,59 @@ ssi时nginx默认包含的模块，只需要在nginx配置文件开启就可以�
         index  index.html index.htm;
 	 }
 ```
+效果
+![ssi合并文件的效果](./files/ssi-1.PNG)
+
+### 同步文件Rsync
+可以实现多个nginx的文件同步
+```shell script
+安装rysnc
+yum install -y rsync
+修改/etc/rsyncd.conf配置文件
+# 添加校验的账户名称
+auth users=chendom
+# 密钥的位置
+secrets file=/etc/rsyncd.pwd
+# 同步的模块
+ [ftp]
+# 同步的目录的位置
+     path = /usr/local/openresty/nginx/html
+#        comment = ftp export area
+
+# 查看远程的rsync指定的文件目录
+[root@node2 /]# rsync --list-only chendom@192.168.0.189::ftp/
+Password: 
+drwxr-xr-x            110 2022/07/28 21:51:30 .
+-rw-r--r--            982 2022/07/21 13:24:08 50x.html
+-rw-r--r--              0 2022/07/28 21:07:17 bottom.html
+-rw-r--r--          1,097 2022/07/21 13:24:08 index.html
+-rw-r--r--          2,771 2022/07/28 21:51:00 rsync.html
+-rw-r--r--             11 2022/07/28 21:53:42 test.html
+-rw-r--r--              0 2022/07/28 21:07:02 top.html
+
+#同步文件
+[root@node2 /]# rsync -avz chendom@192.168.0.189::ftp/  /usr/local/openresty/nginx/html/
+Password: 
+receiving incremental file list
+./
+rsync.html
+test.html
+
+sent 65 bytes  received 1,179 bytes  355.43 bytes/sec
+total size is 4,861  speedup is 3.91
+# 删除文件
+[root@node2 /]# rsync -avz --delete chendom@192.168.0.189::ftp/ /usr/local/openresty/nginx/html/
+Password: 
+receiving incremental file list
+deleting rsync.html
+./
+
+sent 27 bytes  received 166 bytes  42.89 bytes/sec
+total size is 2,090  speedup is 10.83
+
+```
+到此已经完成rsync的文件同步，但是每次手动比较麻烦
+
+
 
 
