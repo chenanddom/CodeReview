@@ -402,5 +402,82 @@ rsync error: some files/attrs were not transferred (see previous errors) (code 2
 到此已经完成rsync的文件同步，但是每次手动比较麻烦
 
 
+* Inotify监控文件的变化
+[Inotify监控文件的变化](./files/inotify-tools-3.14.tar.gz)
+```shell script
+# inotifywait
+# 选项：
+#    -r：递归，对目录中的子目录也进行监控
+#    -q：仅仅打印少量信息（仅仅打印监控的事件）
+#    -m：一直处于监控状态
+#    -d：和-m一样，区别是-d是后台运行
+#    -o file:将监控到的事件输出到一个文件中（默认输出到终端） 
+#    -s：将错苏信息输出到系统日志中（默认输出到终端）
+#    --excludei：忽略文件名的大小写
+#    -e <event>：监控指定的事件
+#        access：访问事件
+#        modify：编辑事件
+#        attrib：修改文件属性事件（修改文件元数据）
+#        close_write：当文件从写模式下关闭的时候，会触发该事件
+#        close_nowrite：当文件从读模式下关闭的时候，会触发该事件
+#        close：无论以什么方式打开的文件，在关闭的时候都会触发该事件
+#        open：当文件被打开时，都会触发该事件
+#        moved_to：当一个文件移动到被监控的目录下，就会触发该事件
+#        moved_from：当一个文件从被监控目录下移走的时候，就会触发该事件
+#        moved_sekf：在监控目录下执行移操作，就会触发该事件
+#        create：创建文件的时候触发
+#        delete：删除文件的时候触发
+        
+#    --timefmt <fmt>：指定时间显示的格式（和date格式一样）
+#    --format <fmt>：
+#        %f：输出发生事件的名称
+#        %w：输出繁盛事件的文件所在目录的绝对路劲
+#        %e:输出发生时间的名称（多个事件以空格隔开）
+#        %Xe：和%e唯一区别是多个事件以X隔开
+#        %T：输出发生事件的时间(时间格式由--timefmt指定)
+监控目录的脚本
+
+#!/bin/bash
+./inotify/bin/inotifywait -mrq --timefmt '%Y-%m-%d %H%M%S' --format '%T %w%f%e' -e close_write,modify,create,delete,attrib,move ///usr/local/openresty/nginx/html/ | while read file 
+do
+         rsync -avz --delete --password-file=/etc/rsync.pwd.client /usr/local/openresty/nginx/html/ chendom@192.168.0.189::ftp/
+done
+```
+注意:
+需要将/usr/local/openresty/nginx/html/目录进行权限的修改，除此之外还需要将客户端的的/etc/rsyncd.conf配置文件的用户和用户的id修改
+```shell script
+  chmod 777 /usr/local/openresty/nginx/html/  
+
+
+# /etc/rsyncd: configuration file for rsync daemon mode
+
+# See rsyncd.conf man page for more options.
+
+# configuration example:
+#rsync操作文件时使用的时root用户和root用户组的权限
+ uid =root
+ gid = root
+# use chroot = yes
+# max connections = 4
+# pid file = /var/run/rsyncd.pid
+# exclude = lost+found/
+# transfer logging = yes
+# timeout = 900
+# ignore nonreadable = yes
+# dont compress   = *.gz *.tgz *.zip *.z *.Z *.rpm *.deb *.bz2
+
+auth users=chendom
+secrets file=/etc/rsyncd.pwd
+read only=no
+
+ [ftp]
+     path = /usr/local/openresty/nginx/html
+#        comment = ftp export area
+~                                       
+
+
+```
+监控目录的脚本
+[监控目录的脚本](./files/monitor.sh)
 
 
