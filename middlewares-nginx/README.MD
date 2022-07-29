@@ -334,6 +334,7 @@ ssi时nginx默认包含的模块，只需要在nginx配置文件开启就可以�
 
 ### 同步文件Rsync
 可以实现多个nginx的文件同步
+* 客户端从服务端拉去数据实现同步
 ```shell script
 安装rysnc
 yum install -y rsync
@@ -380,6 +381,24 @@ sent 27 bytes  received 166 bytes  42.89 bytes/sec
 total size is 2,090  speedup is 10.83
 
 ```
+* 服务端将数据推送到客户端
+```shell script
+[root@node2 ~]# rsync -avz --delete --password-file=/etc/rsync.pwd.client /usr/local/openresty/nginx/html chendom@192.168.0.189::ftp/
+sending incremental file list
+rsync: recv_generator: mkdir "/html" (in ftp) failed: Permission denied (13)
+*** Skipping any contents from this failed directory ***
+html/
+
+sent 182 bytes  received 162 bytes  688.00 bytes/sec
+total size is 2,090  speedup is 6.08
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1179) [sender=3.1.2]
+
+```
+* 注意
+上面的配置文件/etc/rsyncd.conf,存在客户端的服务器的密码文件/etc/rsyncd.pwd,存在服务器的客户端的密码文件/etc/rsyncd.pwd.client都需
+修改权限chmod 600 /etc/rsyncd.conf  /etc/rsyncd.pwd /etc/rsyncd.pwd.client
+除此之外，如果服务器向推送数据到客户端实现同步，需要在客户端的rsyncd.conf上配置 read only=no ,否则无法实现推送
+
 到此已经完成rsync的文件同步，但是每次手动比较麻烦
 
 
