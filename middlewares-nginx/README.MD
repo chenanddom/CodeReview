@@ -481,3 +481,36 @@ read only=no
 [监控目录的脚本](./files/monitor.sh)
 
 
+### Nginx代理缓存proxy_cache
+```shell script
+# http模块配置
+proxy_cache_path /ngx_tmp levels=1:2 keys_zone=test_cache:100m inactive=1d max_size=10g ;
+/ngx_tmp:表示缓存的目录
+levels=1:2 :表示有两级目录，一级目录用一个字符表示，二级目录用两个字符表示。
+keys_zone=test_cache:100m :表示缓存名称,对应的是proxy_cache test_cache;内存中存储索引的最大的大小100M，索引指向了磁盘的文件
+inactive=1d : 表示缓存一天就失效，需要重新的去后台服务去请求
+max_size=10g ：磁盘真正的大小
+
+
+# location配置
+location /proxy_cache {
+	proxy_pass http://javaServers/nginx/get;
+	add_header  Nginx-Cache "$upstream_cache_status";
+	proxy_cache test_cache;
+    #代理缓存有效时长是1小时，一小时就得重新去请求，这个配置必须配置，否则缓存功能不开启
+	proxy_cache_valid 1h;
+	#alias   proxy_cache;
+	#index  home.html home.htm;
+}	
+```
+
+![proxy_cache没命中](./files/proxy_cache-1.PNG)
+
+![proxy_cache命中](./files/proxy_cache-2.PNG)
+
+
+
+
+
+
+
