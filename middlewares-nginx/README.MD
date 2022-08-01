@@ -509,6 +509,30 @@ location /proxy_cache {
 ![proxy_cache命中](./files/proxy_cache-2.PNG)
 
 
+* 缓存清理
+第三方的模块: https://github.com/FRiCKLE/ngx_cache_purge
+[缓存清理](./files/ngx_cache_purge-2.3.tar.gz)       
+```shell script
+# 安装purge_proxy_cache模块
+./configure --prefix=/usr/local/openresty --add-module=/usr/local/ngx_cache_purge/ngx_cache_purge-2.3
+# 配置proxy缓存
+# http模块的配置
+proxy_cache_path /ngx_tmp levels=1:2 keys_zone=test_cache:100m inactive=1d max_size=10g ;
+#location
+ location / {
+   proxy_pass http://javaServers;
+   add_header  Nginx-Cache "$upstream_cache_status";
+   proxy_cache test_cache;
+   proxy_cache_valid 1h;
+   # 重新定义cache key
+   proxy_cache_key $uri;
+   root   html;
+   #index  index.html index.htm;
+   }
+```
+![请求接口后有缓存](./files、purge_proxy_cache-2.PNG)
+![请求清除缓存的接口](./files、purge_proxy_cache-1.PNG)
+![缓存清除](./files、purge_proxy_cache-3.PNG)
 
 
 
