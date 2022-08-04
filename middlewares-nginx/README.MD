@@ -536,5 +536,7 @@ proxy_cache_path /ngx_tmp levels=1:2 keys_zone=test_cache:100m inactive=1d max_s
 
 
 
+### Nginx断点续传
+需要在请求头添加Range:bytes=0-5
 
 
