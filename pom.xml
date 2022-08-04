@@ -23,6 +23,7 @@
         <module>framework-mybatis</module>
         <module>database-redis</module>
         <module>middlewares-nginx</module>
+        <module>mq-kafka</module>
     </modules>
     <dependencyManagement>
         <dependencies>
