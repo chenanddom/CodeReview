@@ -90,12 +90,89 @@ Starting zookeeper ... STARTED
 root       5520      1  6 16:56 pts/0    00:00:02 /usr/local/JDK/jdk1.8.0_144/bin/java -Dzookeeper.log.dir=/opt/module/apache-zookeeper/bin/../logs -Dzookeeper.log.file=zookeeper-root-server-kafka-node2.log -XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError=kill -9 %p -cp /opt/module/apache-zookeeper/bin/../zookeeper-server/target/classes:/opt/module/apache-zookeeper/bin/../build/classes:/opt/module/apache-zookeeper/bin/../zookeeper-server/target/lib/*.jar:/opt/module/apache-zookeeper/bin/../build/lib/*.jar:/opt/module/apache-zookeeper/bin/../lib/zookeeper-prometheus-metrics-3.8.0.jar:/opt/module/apache-zookeeper/bin/../lib/zookeeper-jute-3.8.0.jar:/opt/module/apache-zookeeper/bin/../lib/zookeeper-3.8.0.jar:/opt/module/apache-zookeeper/bin/../lib/snappy-java-1.1.7.7.jar:/opt/module/apache-zookeeper/bin/../lib/slf4j-api-1.7.30.jar:/opt/module/apache-zookeeper/bin/../lib/simpleclient_servlet-0.9.0.jar:/opt/module/apache-zookeeper/bin/../lib/simpleclient_hotspot-0.9.0.jar:/opt/module/apache-zookeeper/bin/../lib/simpleclient_common-0.9.0.jar:/opt/module/apache-zookeeper/bin/../lib/simpleclient-0.9.0.jar:/opt/module/apache-zookeeper/bin/../lib/netty-transport-native-unix-common-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-transport-native-epoll-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-transport-classes-epoll-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-transport-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-tcnative-classes-2.0.48.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-tcnative-2.0.48.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-resolver-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-handler-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-common-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-codec-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/netty-buffer-4.1.73.Final.jar:/opt/module/apache-zookeeper/bin/../lib/metrics-core-4.1.12.1.jar:/opt/module/apache-zookeeper/bin/../lib/logback-core-1.2.10.jar:/opt/module/apache-zookeeper/bin/../lib/logback-classic-1.2.10.jar:/opt/module/apache-zookeeper/bin/../lib/jline-2.14.6.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-util-ajax-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-util-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-servlet-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-server-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-security-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-io-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/jetty-http-9.4.43.v20210629.jar:/opt/module/apache-zookeeper/bin/../lib/javax.servlet-api-3.1.0.jar:/opt/module/apache-zookeeper/bin/../lib/jackson-databind-2.13.1.jar:/opt/module/apache-zookeeper/bin/../lib/jackson-core-2.13.1.jar:/opt/module/apache-zookeeper/bin/../lib/jackson-annotations-2.13.1.jar:/opt/module/apache-zookeeper/bin/../lib/commons-io-2.11.0.jar:/opt/module/apache-zookeeper/bin/../lib/commons-cli-1.4.jar:/opt/module/apache-zookeeper/bin/../lib/audience-annotations-0.12.0.jar:/opt/module/apache-zookeeper/bin/../zookeeper-*.jar:/opt/module/apache-zookeeper/bin/../zookeeper-server/src/main/resources/lib/*.jar:/opt/module/apache-zookeeper/bin/../conf:.:/usr/local/JDK/jdk1.8.0_144/jre/lib/rt.jar:/usr/local/JDK/jdk1.8.0_144/lib/dt.jar:/usr/local/JDK/jdk1.8.0_144/lib/tools.jar -Xmx1000m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /opt/module/apache-zookeeper/bin/../conf/zoo.cfg
 
 ```
+由于已经处理了ssh免密登录操作，所以，完全可以一个脚本就启动完所有结点上的服务
+[zk集群操作脚本](./files/zk.sh)
+zk.sh
+```shell script
+#!/bin/bash
+case $1 in
+"start"){
+	for i in kafka-node1 kafka-node2 kafka-node3
+	do
+		echo  ------------- zookeeper $i 启动 ------------
+		ssh $i "/opt/module/apache-zookeeper/bin/zkServer.sh start"
+	done
+}
+;;
+"stop"){
+	for i in kafka-node1 kafka-node2 kafka-node3
+	do
+		echo  ------------- zookeeper $i 停止 ------------
+		ssh $i "/opt/module/apache-zookeeper/bin/zkServer.sh stop"
+	done
+}
+;;
+"status"){
+	for i in kafka-node1 kafka-node2 kafka-node3
+	do
+		echo  ------------- zookeeper $i 状态 ------------
+		ssh $i "/opt/module/apache-zookeeper/bin/zkServer.sh status"
+	done
+}
+;;
+esac
+```
 
-
+执行效果
+![zookeeper启动](./files/ssh-no-login-3.PNG)
+到此zookeeper安装完成
 
 ## 安装kafka
 
+```shell script
+# 1. 解压kafka_2.12-3.0.0.tgz到/opt/module/kafka
+# 2. 修改配置文件/opt/module/kafka/config/server.properties
+     vim server.properties  
+# 3. 配置kafka broker的服务编号，每个服务示例的编号必须要唯一 
+broker.id=1
 
+# 4. 修改日志文件存储的地方
+log.dirs=/opt/module/kafka/datas
+# 5. 修改zookeeper的地址
+zookeeper.connect=kafka-node1:2181,kafka-node2:2181,kafka-node3:2181/kafka
+# 6.间配置好的服务分别拷贝拷贝到kafka-node2和kafka-node3上
+scp -r module/kafka  root@192.168.0.191:/opt/module
+scp -r module/kafka  root@192.168.0.192:/opt/module
+# 6.要分别修改server.properties 是的broker_id唯一
+broker.id=2
+broker.id=3
+# 7.分别启动各个服务kafka broker
+/opt/module/kafka/bin/kafka-server-start.sh -daemon /opt/module/kafka/config/server.properties
+```
+为了便于集群操作，统一选择一个脚本实现集群的操作
+[kafka集群操作脚本](./files/kafka.sh)
+脚本如下:
+```shell script
+#!/bin/bash
+case $1 in
+"start"){
+	for i in kafka-node1 kafka-node2 kafka-node3
+	do
+		echo  ------------- kafka $i 启动 ------------
+		ssh $i "/opt/module/kafka/bin/kafka-server-start.sh -daemon /opt/module/kafka/config/server.properties"
+	done
+}
+;;
+"stop"){
+	for i in kafka-node1 kafka-node2 kafka-node3
+	do
+		echo  ------------- kafka $i 停止 ------------
+		ssh $i "/opt/module/kafka/bin/kafka-server-stop.sh"
+	done
+}
+;;
+esac
+```
 
 
 
