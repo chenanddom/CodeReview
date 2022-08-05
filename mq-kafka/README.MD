@@ -15,6 +15,44 @@
     
 ![发布订阅模式](./files/publish-subscribe.PNG)    
     
+## Kafka基础架构
+1. 为了方便扩展，并提高吞吐量，一个topic分为多个partition
+2. 配合分区的涉及，提高小组的概念，组内每个消费者并行消费
+3. 为了提高可用性，未每个partition增加若干副本，类似NameNode HA
+4. ZK中记录谁是leader，Kafka2.8.0以后可以配置不采用ZK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
 
