@@ -22,7 +22,8 @@
 4. ZK中记录谁是leader，Kafka2.8.0以后可以配置不采用ZK
 
 
-
+## KAFKA安装
+[KAFKA安装笔记](./KAFKA-INSTALL.MD)
 
 
 
