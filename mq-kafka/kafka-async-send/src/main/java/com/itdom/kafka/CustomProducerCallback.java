@@ -1,15 +1,16 @@
 package com.itdom.kafka;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
-public class CustomProducer {
-
+public class CustomProducerCallback {
+    private static final Logger logger = LoggerFactory.getLogger(CustomProducerCallback.class);
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         // 0 配置
@@ -28,11 +29,21 @@ public class CustomProducer {
         KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(properties);
 
         // 2 发送数据
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             //又发送
-//            kafkaProducer.send(new ProducerRecord<String,String>("first","kafkamessage"+i));
+            kafkaProducer.send(new ProducerRecord<String, String>("first", "kafkamessage" + i), new Callback() {
+                @Override
+                public void onCompletion(RecordMetadata metadata, Exception exception) {
+                    if (exception == null){
+                        System.out.println("主题： "+metadata.topic() + " 分区： "+ metadata.partition());
+                    }                }
+            });
             //同步发送
-            kafkaProducer.send(new ProducerRecord<String,String>("first","kafkamessage"+i)).get();
+//            kafkaProducer.send(new ProducerRecord<String,String>("first","kafkamessage"+i)).get();
+        }
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNext()){
+            String next = scanner.next();
         }
 
         // 3 关闭资源
