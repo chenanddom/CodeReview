@@ -17,7 +17,7 @@ public class CustomProducer {
 
         // 连接集群 bootstrap.servers
 //        properties.put(/*ProducerConfig.BOOTSTRAP_SERVERS_CONFIG*/"bootstrap.servers","kafa-node1:9092,kafa-node2:9092,kafa-node3:9092");
-        properties.put(/*ProducerConfig.BOOTSTRAP_SERVERS_CONFIG*/"bootstrap.servers","192.168.0.190:9092,192.168.0.191:9092,192.168.0.192ss:9092");
+        properties.put(/*ProducerConfig.BOOTSTRAP_SERVERS_CONFIG*/"bootstrap.servers","192.168.0.190:9092,192.168.0.191:9092,192.168.0.192:9092");
 
         // 指定对应的key和value的序列化类型 key.serializer
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());

@@ -85,6 +85,13 @@ Error while executing topic command : Topic currently has 2 partitions, which is
 
 
 
+## Kafka结点的服役和退役
+[Kafka结点的服役和退役](./KAFKA_SERVICE_RETIRE_NODES.MD)
+
+
+
+
+
 
 
 
