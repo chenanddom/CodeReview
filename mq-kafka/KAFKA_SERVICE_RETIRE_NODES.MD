@@ -29,7 +29,7 @@ vim topics-to-move.json
 }
 
 ```
-6.生成一个负载均衡的计划
+6.生成一个均衡的主题
 ```shell script
 [root@kafka-node1 kafka]# sh ./bin/kafka-reassign-partitions.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092 --topics-to-move-json-file topics-to-move.json --broker-list "1,2,3,4" --generate
 Current partition replica assignment
@@ -78,3 +78,47 @@ Clearing topic-level throttles on topic first
 
 
 ## Kafka退役结点
+1. 创建一个均衡存储主题
+```shell script
+[root@kafka-node1 kafka]# sh ./bin/kafka-reassign-partitions.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092 --topics-to-move-json-file topics-to-move.json --broker-list "1,2,3" --generate
+Current partition replica assignment
+{"version":1,"partitions":[{"topic":"first","partition":0,"replicas":[2,4,1],"log_dirs":["any","any","any"]},{"topic":"first","partition":1,"replicas":[3,1,2],"log_dirs":["any","any","any"]}]}
+
+Proposed partition reassignment configuration
+{"version":1,"partitions":[{"topic":"first","partition":0,"replicas":[1,2,3],"log_dirs":["any","any","any"]},{"topic":"first","partition":1,"replicas":[2,3,1],"log_dirs":["any","any","any"]}]
+```
+2. 创建副本存储计划(所有副本存储在 broker1 、broker2 、broker3 中）。
+```shell script
+echo '{"version":1,"partitions":[{"topic":"first","partition":0,"replicas":[1,2,3],"log_dirs":["any","any","any"]},{"topic":"first","partition":1,"replicas":[2,3,1],"log_dirs":["any","any","any"]}]}'>>increase-replication-factor.json
+```
+3. 执行副本存储计划
+```shell script
+[root@kafka-node1 kafka]# sh ./bin/kafka-reassign-partitions.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092 --reassignment-json-file increase-replication-factor.json --execute
+Current partition replica assignment
+
+{"version":1,"partitions":[{"topic":"first","partition":0,"replicas":[2,4,1],"log_dirs":["any","any","any"]},{"topic":"first","partition":1,"replicas":[3,1,2],"log_dirs":["any","any","any"]}]}
+
+Save this to use as the --reassignment-json-file option during rollback
+Successfully started partition reassignments for first-0,first-1
+```
+4.验证副本存储计划
+```shell script
+[root@kafka-node1 kafka]# sh ./bin/kafka-reassign-partitions.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092 --reassignment-json-file increase-replication-factor.json --verify
+Status of partition reassignment:
+Reassignment of partition first-0 is complete.
+Reassignment of partition first-1 is complete.
+
+Clearing broker-level throttles on brokers 1,2,3,4
+Clearing topic-level throttles on topic first
+[root@kafka-node1 kafka]# sh ./bin/kafka-reassign-partitions.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092 --reassignment-json-file increase-replication-factor.json --describe
+[root@kafka-node1 kafka]# ./bin/kafka-topics.sh --bootstrap-server kafka-node1:9092,kafka-node2:9092,kafka-node3:9092,192.168.0.193:9092 --topic first --describe
+Topic: first	TopicId: ny8JJE15Ra2KhFO3dSDVeQ	PartitionCount: 2	ReplicationFactor: 3	Configs: segment.bytes=1073741824
+	Topic: first	Partition: 0	Leader: 2	Replicas: 1,2,3	Isr: 1,2,3
+	Topic: first	Partition: 1	Leader: 3	Replicas: 2,3,1	Isr: 3,1,2
+
+```
+
+5. 停止kafka-node4结点的服务
+```shell script
+./bin/kafka-server-stop.sh 
+```
