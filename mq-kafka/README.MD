@@ -193,14 +193,39 @@ Range是堆每个topic而言的。首先堆同一个topic里面的分区按照�
 
 
 ## Offset
-
+offset就是记录消费者再当前主题的分区中消费到的位置。
 从0.9版本开始，consumer默认将offset保存在Kafka一个内置的topic中，该topic为__consumer_offsets,如果存在zookeeper中，
 消费者就需要频繁的和zookeeper交互，会给zookeeper带来很大的压力。__consumer_offsets主题里面采用 key 和 value 的方式
 存储数据。 key 是 group.id+topic+分区号， value 就是当前 offset 的值。每隔一段时间, kafka 内部会对这个topic 进
 行compact,也就是每个 group.id+topic+分区号就保留最新数据。
 
+![offset](./mq-kafka/files/kafka-consumer-2.PNG)
 
 
+*　自动提交
+```java
+
+```
+
+* 手动提交
+虽然自动提交offset十分简单便利，但由于其是基于时间提交的，开发人员难以把握offset提交的时机。因
+此Kafka还提供了手动提交offset的API。
+手动提交offset的方法有两种：分别是commitSync（同步提交）和commitAsync（异步提交）。两者的相
+同点是，都会将本次提交的一批数据最高的偏移量提交；不同点是，同步提交阻塞当前线程，一直到提交成
+功，并且会自动失败重试（由不可控因素导致，也会出现提交失败）；而异步提交则没有失败重试机制，故
+有可能提交失败。
+• commitSync（同步提交）：必须等待offset提交完毕，再去消费下一批数据。
+• commitAsync（异步提交） ：发送完提交offset请求后，就开始消费下一批数据了。
+
+
+*　Offset设置
+auto.offset.reset=earliest|latest|none
+当Kafka中没有初始偏移量(消费者组第一次消费)或者服务器上不再存在当前偏移量时(例如该数据已经被删除)，该怎么办？
+    * earliest：自动将偏移量充值为最早的偏移量，--from-beginning
+    * latest(默认值):自动将偏移量重置为最新便宜量
+    * none ：如果未找到消费者组的先前偏移量，则向消费者抛出异常 。
+
+![Offset不同类型的体现](./files/kafka-consumer-3.PNG)
 
 
 
