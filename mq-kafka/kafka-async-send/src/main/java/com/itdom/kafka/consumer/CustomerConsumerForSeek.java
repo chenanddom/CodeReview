@@ -24,6 +24,13 @@ public class CustomerConsumerForSeek {
         //配置分区策略
         properties.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.RangeAssignor");
 
+        //默认最大的一批数据时50M
+        properties.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG,50*1024*1024);
+        //一次拉取的最大记录数,默认是500
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,500);
+
+
+
         KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
         //订阅kafka消息队列的主题
         kafkaConsumer.subscribe(new ArrayList<String>() {{
