@@ -89,21 +89,115 @@ Error while executing topic command : Topic currently has 2 partitions, which is
 [Kafka结点的服役和退役](./KAFKA_SERVICE_RETIRE_NODES.MD)
 
 
+## Kafka消费者
+➢ pull（拉）模式：
+consumer采用从broker中主动拉取数据。
+Kafka采用这种方式。
+
+➢ push（推）模式：
+
+Kafka没有采用这种方式，因为由broker
+决定消息发送速率，很难适应所有消费者的
+消费速率。例如推送的速度是50m/s，
+Consumer1、Consumer2就来不及处理消息。
+pull模式不足之处是，如果Kafka没有数
+据，消费者可能会陷入循环中，一直返回
+空数据。
+
+* Kafka的消费流程
+![Kafka的消费流程](./files/kafka-consumer-1.PNG)
+
+
+* 消费者组的原理 ，消费者组，由多个consumer组成。形成一个消费者组的条件，是所有消费者的groupid相同。
+    * 消费者组内的每个消费者负责消费主题的不同分区，一个分区只能由消费者组内的消费者消费。
+    * 消费者组之间互不影响。所有的消费者都属于某个消费者组，即消费者组是逻辑上的一个订阅者。
+
+
+注意：
+在消费者 API 代码中必须配置消费者组 id 。 命令行启动消费者不填写消费者组
+i d 会被自动填写随机的消费者组 id
+例子:
+
+[消费者必须带上组ID](./kafka-async-send/src/main/java/com/itdom/kafka/consumer/CustomerConsumer.java)
+
+核心的代
+```java
+ //配置消费者组
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "Kafka-group-1");
+        //配置分区策略
+        properties.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.RangeAssignor");
+
+        KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
+        //订阅kafka消息队列的主题
+        kafkaConsumer.subscribe(new ArrayList<String>() {{
+            add("first");
+        }});
+
+        // 3 消费数据
+        while (true) {
+            ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofSeconds(1));
+            for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
+                System.out.println(consumerRecord);
+            }
+            kafkaConsumer.commitAsync();
+        }
+```
+
+
+* 指定主题和分区消费
+
+[指定主题和分区消费](./kafka-async-send/src/main/java/com/itdom/kafka/consumer/CustomerConsumerForSpecialPartition.java)
+
+```java
+        KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
+        kafkaConsumer.assign(new ArrayList<TopicPartition>(){{add(new TopicPartition("first",1));}});
+        // 3 消费数据
+        while (true) {
+            ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofSeconds(1));
+            for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
+                System.out.println(consumerRecord);
+            }
+            kafkaConsumer.commitAsync();
+        }
+```
+
+
+## 分区的分配以及再平衡
+
+* Range分区策略原理
+```text
+ 
+Range是堆每个topic而言的。首先堆同一个topic里面的分区按照序号进行排序，并堆消费者按照字母顺序进行拍寻
+
+假如有7个分区，3个消费者，排序后的分区将会是0，1，2，3，4，5，6；消费者排序完之后将会是C0,C1,C2. 
+ 
+通过partitions数/consumer数来决定每个消费者应该消费几个分区，如果除不尽，那么前面的结果而消费者将会多消费1个分区
+
+例如，7/3=2余1,除不尽，那么消费者C0便会多消费1个分区。8/3=2余2，那么前面的结果消费者C0、C1
+```
+注意：如果只是针对1 个topic 而言，C0消费者多消费1
+个分区影响不是很大。但是如果有N 多个topic，那么针对每
+个topic，消费者C0都将多消费1 个分区，topic越多，C0消
+费的分区会比其他消费者明显多消费N 个分区。
+容易产生数据倾斜
+```java
+        
+//       org.apache.kafka.clients.consumer.RangeAssignor //Range
+//       org.apache.kafka.clients.consumer.RoundRobinAssignor //轮询的方式
+//       org.apache.kafka.clients.consumer.StickyAssignor //粘性
+        properties.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "org.apache.kafka.clients.consumer.RangeAssignor");
+
+```
 
 
 
 
+## Offset
 
-
-
-
-
-
-
-
-
-
-
+从0.9版本开始，consumer默认将offset保存在Kafka一个内置的topic中，该topic为__consumer_offsets,如果存在zookeeper中，
+消费者就需要频繁的和zookeeper交互，会给zookeeper带来很大的压力。__consumer_offsets主题里面采用 key 和 value 的方式
+存储数据。 key 是 group.id+topic+分区号， value 就是当前 offset 的值。每隔一段时间, kafka 内部会对这个topic 进
+行compact,也就是每个 group.id+topic+分区号就保留最新数据。
 
 
 
