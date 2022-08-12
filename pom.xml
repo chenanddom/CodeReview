@@ -24,6 +24,7 @@
         <module>database-redis</module>
         <module>middlewares-nginx</module>
         <module>mq-kafka</module>
+        <module>long-connection-mqtt</module>
     </modules>
     <dependencyManagement>
         <dependencies>
