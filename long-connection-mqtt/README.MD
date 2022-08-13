@@ -160,10 +160,17 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
 |2|1|1|
 |2|2|2|
 
+*  
+     [QoS0-2消息发布订阅的流程图](https://app.diagrams.net/#Hchenanddom%2FCharts%2Fmain%2Frepo%2FMQTT%E6%B6%88%E6%81%AF%E7%9A%84QoS.drawio)        
 
+    * QoS0消息发布订阅
+        ![QoS0消息发布订阅](./files/mqtt-QoS-1.PNG)
 
-
-
+    *　QoS1消息发布订阅
+        ![QoS1消息发布订阅](./files/mqtt-QoS-2.PNG)
+    
+    * QoS2消息发布订阅
+        ![QoS2消息发布订阅](./files/mqtt-QoS-3.PNG)
 
 
 
