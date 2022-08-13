@@ -120,6 +120,8 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
         如果Bit1为1，表示QoS1:至少一次；
         如果Bit2为1，表示QoS:只有一次；
         如果Bit1和Bit2都设置1，那么客户端或者服务器人为这事一条非法的消息，会关闭当前的连接
+    3. Bit[0]为RETAIN字段，发布保留标识，标识服务器要保留这次推送的消息，如果由新的订阅者出现，就把这条
+        消息推送给它，否则就推送个当前的订阅者后释放。    
     
 |报文类型|固定头标记|Bit3|Bit2|Bit1|Bit0|
 | ---- | ---- | ---- | ---- | ---- | ----|
@@ -180,18 +182,84 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
 
 
 
+## 可变头详解
+    可变头的意思是可变阿华的消息头部。有些报文类型包含可变头部，有些报文则不包含可变消息头部。可变头部在固定头部和
+ 消息内容之间，其内容根据报文类型不同而不同。
+ 
+![可变头详解](./files/mqtt-variable-header-1.PNG)
 
+* 
+    * 协议名
+        协议名是标识协议名MQTT的UTF-8编码的字符串。MQTT规范的后续版本不回改变这个字都喜欢的便宜和长度
+        
+        |--|说明|76543210|
+        | ---- | ---- | ---- |
+        |byte1|长度MSB(0)|00000000|
+        |byte2|长度LSB(4)|00000100|
+        |byte3|'M'|01001101|
+        |byte4|'Q'|01010001|
+        |byte5|'T'|01010100|
+        |byte6|'T'|01010100|
 
+    * 协议版本
+        为无符号值表示客户端的版本等级。3.1.1版本的协议等级为4，MQTTV5.0的协议版本字段为5(0x05)
+    * MQTT会话(Clean Session)
+        MQTT客户端向服务器发器的CONNECT请求，可以通过Clean Session标志设置会话
+        Clean Session设置为0，表示创建一个持久会话，在客户端断开连接时，会话仍然保持并保存离线消息，直到会话超时注销。
+        Clean Session设置为1，表示创建一个新的临时会话，在客户端断开时，会话自动销毁。
+    * Will Flag/Will QoS/Will Retain
+        如果Will Flag被设置为1，这意味着如果连接请求被接受，服务端必须存储一个Will Message,并和网络连接关联起来。之后
+        在网络断开连接的的时候必须要发布Will Message,除非服务端收到DISCONNECT包删掉了Will Message.
+       * Will Message会在某些情况下发布，包括但不限于：
+            * 服务端发生I\O错误或者网络失败。
+            * 客户端在Keep Alive时间内通信失败
+            * 客户端没与发生DISCONNECT句就关闭了网络连接
+            * 服务端因协议错误关闭了网络连接
+            
+       如果Will Flag被设置为1，连接表示中的Will QoS和Will Retain字段将会被服务端用到
+       Will QoS这两个bit表示发布Will Message时使用的QoS等级。
+       Will Retain这个bit表示Will Message在发布之后是否需要保留。
+       如果Will Flag设置为0，那么Will Retain必须是0
+       * 如果Will Flag 设置为1：
+            * 如果Will Retain设置为0，那么服务端必须发布Will Message,不必保存
+            * 如果Will Retain设置为1，那么服务端必须发布Will Message,并保存
+           
+    * User Name Flag
+        如果User Name Flag设置为0，那么用户名不必出现在载荷中。
+        如果User Name Flag设置为1，那么用户名必须出现在载荷中。
 
+    *　Password Flag
+        如果Password Flag设置为0，那么密码不必出现在载荷中
+        如果Password Flag设置为1，那么密码必须出现在载荷中
+        如果User Name Flag设置为0，那么Password Flag必须设置为0
+        
+    * MQTT连接保活心跳
+       PINGREQ包从客户端发往服务端，可以用来：
+       1：在没有其他控制包从客户端发送给服务端的时候，告知服务端客户端的存活状态。
+       2：请求服务端响应，来确认服务端是否存活。
+       3：确认网络连接的有效性。
+       PINGRESP包从服务端发送给客户端来响应PINGREQ包。它代表服务端是存活的。
+       MQTT客户端向服务器发起CONNECT请求时，通过KeepAlive参数设置保活周期。
+       Keep Alive是以秒为单位的时间间隔。用2字节表示，它指的是客户端从发送完成一个控制包到开始发送
+       下一个的最大时间间隔。客户端有责任确保两个控制包发送的间隔不能超过Keep Alive的值。如果没有其他
+       控制包可发，客户端必须发送PINGREQ包
+       客户端可以在任何时间发送PINGREQ包，不用关心Keep Alive的值，用PINGRESP来判断与服务端的网
+       络连接是否正常。
+       如果Keep Alive的值非0，而且服务端在一个半Keep Alive的周期内没有收到客户端的控制包，服务端必
+       须作为网络故障断开网络连接
+       如果客户端在发送了PINGREQ后，在一个合理的时间都没有收到PINGRESP包，客户端应该关闭和服务
+       端的网络连接。
+       Keep Alive的值为0，就关闭了维持的机制。这意味着，在这种情况下，服务端不会断开静默的客户端。
+    
+    * MQTT遗愿消息(Last Will)        
+        MQTT客户端向服务器端CONNECT请求时，可以设置是否发生遗愿消息(Will Message)标志，和遗愿消息主题(Topic)与内容(Payload)
+        MQTT客户端异常下线时(客户端断开前未向服务器发送DISCONNECT消息)，MQTT消息服务器会发布遗愿消息。
 
-
-
-
-
-
-
-
-
+## 消息体(Payload)\
+    有些报文类型是包含Payload的，Payload意思是消息载体的意思
+    如PUBLISH的Payload就是值消息内容(应用程序发布的消息内容)。而CONNECT的Payload则包含Client Identifier,Will Topic，
+    Will Message,Username,Password等信息
+    
 
 
 
