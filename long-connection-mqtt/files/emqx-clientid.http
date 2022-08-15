@@ -1,0 +1,43 @@
+
+@hostname = 192.168.0.193
+@port=18083
+@contentType=application/json
+@userName=admin
+@password=public
+
+
+
+####添加clientId和密码#####
+POST http://{{hostname}}:{{port}}/api/v4/auth_clientid HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Basic {{userName}}:{{password}}
+
+{
+"clientid": "emq-client-id-001",
+"password": "123456"
+}
+
+#############获取所有详细信息########
+GET http://{{hostname}}:{{port}}/api/v4/auth_clientid HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Basic {{userName}}:{{password}}
+
+
+#############更改指定 Client ID 的密码########
+PUT http://{{hostname}}:{{port}}/api/v4/auth_clientid/emq-client-id-001 HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Basic {{userName}}:{{password}}
+
+{
+"password": "pwd@123"
+}
+
+#############获取指定ClientId详细信息########
+GET http://{{hostname}}:{{port}}/api/v4/auth_clientid/emq-client-id-001 HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Basic {{userName}}:{{password}}
+
+#############删除指定的client信息########
+DELETE http://{{hostname}}:{{port}}/api/v4/auth_clientid/emq-client-id-001 HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Basic {{userName}}:{{password}}

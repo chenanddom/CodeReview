@@ -25,8 +25,32 @@ EMQ X Broker v4.0.5 is started successfully!
 
 ## 配置
 
-是否允许匿名登录，默认true是允许的,false就表示不允许
+### 启用emqx-auth-username-plugin
+/etc/emqx/emqx.conf
+```shell script
+#是否允许匿名登录，默认true是允许的,false就表示不允许，此时就需要输入用户名和密码方可登录连接
 allow_anonymous = false
+```
+![启动emqx_auth_username用户名认证](./files/mqtt-emqx-auth-username-plugin.PNG)
+
+* 使用Emqx客户端连接 broker需要用户名密码
+![](./files/mqtt-emqx-auth-username-plugin-1.PNG)
+![](./files/mqtt-emqx-auth-username-plugin-2.PNG)
+
+### 启用emqx_auth_clientid插件
+在界面上启动emqx_auth_clientid插件，此时如果username认证不通过就会进入到client_id认证的流程!
+
+![mqtt-emqx_auth_clientid-plugin](./files/mqtt-emqx_auth_clientid-plugin-1.PNG)
+
+* 添加clientid
+可以选择在/etc/emqx/plugins/emqx_auth_clientid.conf里面配置clientid和密码，但是这种方式是明文的，不安全，不建议使用
+所以还是需要使用api的方式添加
+[api添加clientid](./files/emqx-clientid.http)
+
+* emqx客户端连接broker
+![连接的主要参数配置](./files/mqtt-emqx_auth_clientid-plugin-2.PNG)
+
+![连接的后执行的结果](./files/mqtt-emqx_auth_clientid-plugin-3.PNG)
 
 
 
