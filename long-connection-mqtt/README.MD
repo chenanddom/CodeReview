@@ -259,8 +259,24 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
     有些报文类型是包含Payload的，Payload意思是消息载体的意思
     如PUBLISH的Payload就是值消息内容(应用程序发布的消息内容)。而CONNECT的Payload则包含Client Identifier,Will Topic，
     Will Message,Username,Password等信息
+    包含payload的报文类型如下：
     
-
+|报文的类型|是否需要payload|
+|----|----|
+|CONNECT|Required|
+|CONNACK|None|
+|PUBLISH|Optional|
+|PUBACK|None|
+|PUBREC|None|
+|PUBREL|None|
+|PUBCOMP|None|
+|SUBSCRIBE|Required|
+|SUBACK|Required|
+|UNSUBSCRIBE|Required|
+|UNSUBACK|Required|
+|PINGREQ|None|
+|PINGRESP|None|
+|DICONNECT|None|
 
 
 
