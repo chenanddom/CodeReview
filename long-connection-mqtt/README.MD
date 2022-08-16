@@ -279,11 +279,15 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
 |DICONNECT|None|
 
 
+## emqx安装和相关的配置使用
+
+[emqx安装和相关的配置使用](./EMQX_INSTALL_CONFIGURE.MD)
 
 
 
+## 基于Paho开发emqx客户端
 
-
+[基于Paho开发emqx客户端](./PAHO_CLIENT.MD)
 
 
 
