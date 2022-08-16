@@ -8,6 +8,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>mqtt-http-auth</module>
+        <module>mqtt-paho-client</module>
     </modules>
 
     <parent>

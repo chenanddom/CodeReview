@@ -63,6 +63,18 @@ auth.http.auth_req.method = post
 ## Value: Params
 auth.http.auth_req.params = clientid=%c,username=%u,password=%P
 ```   
+占位符的解释
+```text
+%u：用户名
+%c：Client ID
+%a：客户端 IP 地址
+%r：客户端接入协议
+%P：明文密码
+%p：客户端端口
+%C：TLS 证书公用名（证书的域名或子域名），仅当 TLS 连接时有效
+%d：TLS 证书 subject，仅当 TLS 连接时有效
+```
+
 修改完成之后就需要重复emqx服务 emqx restart
 
 [http认证服务代码](./mqtt-http-auth)

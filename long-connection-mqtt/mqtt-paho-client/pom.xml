@@ -3,17 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>mqtt-http-auth</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>mqtt-paho-client</artifactId>
     <packaging>jar</packaging>
-
     <parent>
-        <groupId>groupId</groupId>
         <artifactId>long-connection-mqtt</artifactId>
+        <groupId>groupId</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
-
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -23,15 +22,29 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.paho</groupId>
+            <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+            <version>1.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.itdom.AuthApplication</mainClass>
+                    <mainClass>com.itdom.NginxApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -43,8 +56,5 @@
             </plugin>
         </plugins>
     </build>
-
-
-
 
 </project>
