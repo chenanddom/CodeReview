@@ -48,6 +48,7 @@ public class EmqttClient {
      */
     @PostConstruct
     public void init() {
+        //推送的和接收到的消息的一个持久化类，确保消息的质量
         MqttClientPersistence mempersitence = new MemoryPersistence();
         try {
             iMqttClient = new MqttClient(mqttConfig.getBrokerUrl(), mqttConfig.getClientId(), mempersitence);
