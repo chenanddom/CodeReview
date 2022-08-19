@@ -7,8 +7,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +23,7 @@ public class AuthService {
         put("admin", "public");
         put("emq-client-id-001", "123456");
     }};
+    private Map<String, Boolean> clientStatusMap = new HashMap<String, Boolean>();
 
 
     public ResponseEntity authUser(String clientid, String username, String password) {
@@ -45,5 +48,26 @@ public class AuthService {
             //不是超级用户
             return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    public void webhook(Map<String, Object> body) {
+        String action = (String) body.get("action");
+        String clientId = (String) body.get("clientid");
+        if (action.equals("client_connected")) {
+            //客户端成功接入
+            clientStatusMap.put(clientId, true);
+        }
+        if (action.equals("client_disconnected")) {
+            //客户端断开连接
+            clientStatusMap.put(clientId, false);
+        }
+    }
+
+    public Map getDeviceStatus(String clientId) {
+        if (StringUtils.isEmpty(clientId)){
+            return clientStatusMap;
+        }
+        final String cid = clientId;
+        return new HashMap<String,Boolean>(){{put(cid,clientStatusMap.get(cid));}};
     }
 }

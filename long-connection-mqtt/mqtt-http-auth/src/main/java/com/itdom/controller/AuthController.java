@@ -32,7 +32,7 @@ public class AuthController {
 
     @PostMapping("/superuser")
     public ResponseEntity superUser(@RequestParam("clientid") String clientid,
-                                       @RequestParam("username") String username) {
+                                    @RequestParam("username") String username) {
         return authService.superUser(clientid, username);
     }
 
@@ -57,4 +57,18 @@ public class AuthController {
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);//无权限
     }
 
+    /**
+     * 使用webhook监督客户端的状态变化
+     *
+     * @param body
+     */
+    @PostMapping("/webhook")
+    public void webhook(@RequestBody Map<String, Object> body) {
+        authService.webhook(body);
+    }
+
+    @GetMapping("/getDeviceStatus")
+    public Map getDeviceStatus(@RequestParam("clientId")String clientId){
+        return authService.getDeviceStatus(clientId);
+    }
 }
