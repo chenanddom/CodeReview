@@ -237,6 +237,10 @@ web.hook.rule.client.connected.1     = {"action": "on_client_connected"}
 # webhook监控断开连接事件
 web.hook.rule.client.disconnected.1  = {"action": "on_client_disconnected"}
 ```
+* 后端管理界面开启webhook插件
+![后端管理界面开启webhook](./files/webhook-6.PNG)
+
+
 
 ![终端设备上线使用webhook监控设备上线](./files/webhook-2.PNG)
 ![终端设备上线使用webhook监控设备上线](./files/webhook-3.PNG)

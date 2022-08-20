@@ -298,7 +298,8 @@ MQTT协议工作在低带宽、不可靠的网络的远程传感器和控制设�
 ## WebHook
 [WebHook](./WEBHOOK.MD)
 
-
+## EMQX 集群搭建
+[EMQX 集群搭建](./EMQX_CLUSTER_BUILD.MD)
 
 
 
