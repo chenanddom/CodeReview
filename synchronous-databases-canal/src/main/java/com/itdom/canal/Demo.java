@@ -45,7 +45,6 @@ public class Demo {
                 }
             } else {
                 for (Entry entry : entries) {
-
                     //获取表名
                     String tableName = entry.getHeader().getTableName();
                     //获取类型
@@ -71,21 +70,12 @@ public class Demo {
                             }
 
                             logger.info("table:{},EventType:{},Before:{},After:{}", tableName, eventType, before, after);
-
-
                         }
-
-
                     } else {
                         logger.info("当前操作类型为:{}", entryType);
                     }
-
-
                 }
             }
-
         }
-
-
     }
 }
