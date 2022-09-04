@@ -13,7 +13,7 @@
         <module>multi-thread</module>
         <module>design-pattern</module>
         <module>guava-learn</module>
-<!--        <module>framework-spring-boot</module>-->
+        <!--        <module>framework-spring-boot</module>-->
         <module>domain-driven-development</module>
         <module>database-mysql</module>
         <module>long-connection-websocket</module>
@@ -26,6 +26,7 @@
         <module>mq-kafka</module>
         <module>long-connection-mqtt</module>
         <module>synchronous-databases-canal</module>
+        <module>hegh-available-keepalived</module>
     </modules>
     <dependencyManagement>
         <dependencies>

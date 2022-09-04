@@ -9,7 +9,7 @@
 |[Docker](./)|[Kubernetes学习](./kubernetes-learning/README.MD)|
 |[深入学习MyBatis](./framework-mybatis/README.MD)|[深入学习RabbitMQ消息队](./mq-rabbitmq/README.MD)|
 |[nginx+lua高性能服务器修炼之路](./middlewares-nginx/README.MD)|[Nginx+Lua实现高性能服务器](https://github.com/chenanddom/lua-train)|
-
+|[nginx+keepalived实现高可用](./)|[canal实现数据修改同步](./synchronous-databases-canal/README.MD)|
 
 
 
