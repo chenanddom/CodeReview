@@ -7,3 +7,5 @@
 ## [Redis的网络模型](./)
 
 ## [Redis命令](./REDIS-COMMAND.MD)
+
+## [Redis支持的数据类型]()
