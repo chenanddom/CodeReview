@@ -52,4 +52,12 @@ OK
     * lpop k1 count 在键k1的队列上弹出count个元素
     * rpush k1 v1 在键k1的列表右边添加一个元素
     * rpop k1 count在k1的列表右边弹出count个元素
-    * rpoplpush k1 k2 在键k1的队列弹出一个元素添加到键为k2的队列的左侧。    
+    * rpoplpush k1 k2 在键k1的队列弹出一个元素添加到键为k2的队列的左侧。
+    * lrem k1 count "value" 删除k1键下面的count个value值。
+    * lset k1 index value 将k1键下的列表的index角标的值修改为value。
+    
+    
+    
+* set集合
+
+        
