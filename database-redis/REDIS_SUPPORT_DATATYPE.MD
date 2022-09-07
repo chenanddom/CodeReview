@@ -190,9 +190,9 @@ OK
 1) "v5"
 2) "v2"
 3) "v4"
-# 取交集
 127.0.0.1:6379> sadd k1 v5
 (integer) 1
+# 取交集
 127.0.0.1:6379> sinter k1 k2
 1) "v5"
 -----------------------------------------------
@@ -226,3 +226,212 @@ OK
 2) "v3"
 ```
 Set数据结构是dict字典，字典是使用哈希白哦实现的。
+
+
+## hash数据类型
+```text
+Hash类型对应的数据结构有两种，ziplist(压缩列表)，hashtable(哈希表)。当数据
+field-value长度段且个数比较少的时候，使用ziplist，否则使用hashtable.
+
+```
+```shell script
+127.0.0.1:6379> flushdb
+OK
+# 添加hash对应的key，以及对应的field对应的value
+127.0.0.1:6379> hset user:1001 id 1
+(integer) 1
+# 添加hash对应的key，以及对应的field对应的value
+127.0.0.1:6379> hset user:1001 name zhangsan
+(integer) 1
+# 获取hash对应的key的field对应的value
+127.0.0.1:6379> hset user:1001 age 20
+(integer) 1
+# 获取hash对应的key的field对应的value
+127.0.0.1:6379> hget user:1001 id
+"1"
+# 获取hash对应的key的field对应的value
+127.0.0.1:6379> hget user:1001 name
+"zhangsan"
+# 获取所有key对应的所有field-value
+127.0.0.1:6379> hgetall user:1001
+1) "id"
+2) "1"
+3) "name"
+4) "zhangsan"
+5) "age"
+6) "20"
+#批量添加 key对应的field-value
+127.0.0.1:6379> hmset user:1002 id 2 name lisi age 30
+OK
+# 获取key对应的所有value
+127.0.0.1:6379> hgetall user:1002
+1) "id"
+2) "2"
+3) "name"
+4) "lisi"
+5) "age"
+6) "30"
+# 判断是否存在key对应的field-value
+127.0.0.1:6379> hexists user:1001 id
+(integer) 1
+# 判断是否存在key对应的field-value
+127.0.0.1:6379> hexists user:1001 gender
+(integer) 0
+# 获取key所有的所有的field
+127.0.0.1:6379> hkeys user:1001
+1) "id"
+2) "name"
+3) "age"
+# 获取key所有的value
+127.0.0.1:6379> hvals user:1001
+1) "1"
+2) "zhangsan"
+3) "20"
+# 将key对应的field-value值自增1
+127.0.0.1:6379> hincrby user:1001 age 1
+(integer) 21
+127.0.0.1:6379> hgetall user:1001
+1) "id"
+2) "1"
+3) "name"
+4) "zhangsan"
+5) "age"
+6) "21"
+# 原子性的添加key对应的field-value，如果存在就操作失败，如果不存在就添加成功
+127.0.0.1:6379> hsetnx user:1001 id 1
+(integer) 0
+```
+
+## zset有序集合
+```text
+有序集合zset域普通集合set非常相似，试一个没有重复元素的字符串集合。不同的指出试有序集合的每一个成员都关联了评分(score)，这
+个评分被用来按照从最低分到最高分的方式排序集合中的成员。集合的成岩试唯一的，但是评分可以是重复的。
+
+```
+
+```shell script
+# 添加有序集合
+127.0.0.1:6379> zadd topk 100 java 200 c++ 300 c 400 php 500 c# 600 lua
+(integer) 6
+# 获取有序集合里面所有的元素
+127.0.0.1:6379> zrange topk 0 -1
+1) "java"
+2) "c++"
+3) "c"
+4) "php"
+5) "c#"
+6) "lua"
+#获取有序集合里面所有的有序元素保活它的分数
+127.0.0.1:6379> zrange topk 0 -1 withscores
+ 1) "java"
+ 2) "100"
+ 3) "c++"
+ 4) "200"
+ 5) "c"
+ 6) "300"
+ 7) "php"
+ 8) "400"
+ 9) "c#"
+10) "500"
+11) "lua"
+12) "600"
+# 获取有序集合里面对应分数取值范围的有序集合的元素
+127.0.0.1:6379> zrangebyscore topk 200 400
+1) "c++"
+2) "c"
+3) "php"
+# 按照逆序获取指定范围有序集合的元素
+127.0.0.1:6379> zrevrangebyscore topk 500 300
+1) "c#"
+2) "php"
+3) "c"
+# 对有序集合的元素进行增加
+127.0.0.1:6379> zincrby topk 10 java
+"110"
+127.0.0.1:6379> zrange topk 0 -1
+1) "java"
+2) "c++"
+3) "c"
+4) "php"
+5) "c#"
+6) "lua"
+127.0.0.1:6379> zrange topk 0 -1 withscores
+ 1) "java"
+ 2) "110"
+ 3) "c++"
+ 4) "200"
+ 5) "c"
+ 6) "300"
+ 7) "php"
+ 8) "400"
+ 9) "c#"
+10) "500"
+11) "lua"
+12) "600"
+#删除有序集合中的指定元素
+127.0.0.1:6379> zrem topk c#
+(integer) 1
+127.0.0.1:6379> zrange topk 0 -1 withscores
+ 1) "java"
+ 2) "110"
+ 3) "c++"
+ 4) "200"
+ 5) "c"
+ 6) "300"
+ 7) "php"
+ 8) "400"
+ 9) "lua"
+10) "600"
+# 统计有序集合的分数的范围的内的个数
+127.0.0.1:6379> zcount topk 400 600
+(integer) 2
+127.0.0.1:6379> zcount topk 200 600
+(integer) 4
+# 获取有序集合在集合内的排名
+127.0.0.1:6379> zrank topk php
+(integer) 3
+```
+
+* zset的底层数据结构
+```text
+    SortedSet是Redis提高的一个非常特别的数据结构，一方面他等价于Java的Map<String,Double>，可以给每一个元素value赋予一个权重score,
+另一方面它又类似于TreesET,内部的元素会按照权重score进行排序，可以得到每一个元素的名词，还可以通过score的范围来获取元素的列表。
+    zset底层使用了两个数据结构
+    1. hash,hash的左右就是关联元素value和权重score,保障元素value唯一性，可以通过元素value找到value对应的score值
+    2. 跳跃表，跳跃表的目的在于给元素value排序，根据score的范围获取元素列表。
+```
+
+
+
+
+##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
