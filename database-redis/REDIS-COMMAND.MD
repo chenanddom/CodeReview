@@ -90,10 +90,15 @@ OK
     * zrem k1 v1:删除有序集合内的元素v1
     * zinrby k1 score v1:为有序集合里面的元素v1加分score
     * zcount k1 minscore maxscore :统计k1集合从最大分数到最小分数的元素个数    
-    * zrank k1 v1:获取元素v1在有序集合的排名 
+    * zrank k1 v1:获取元素v1在有序集合的排名
+    
+    
+* 发布订阅
+    * publish channel "message content" 发布内容
+    * subscribe channel :订阅主题
+         
             
-            
-            
+                        
             
             
             

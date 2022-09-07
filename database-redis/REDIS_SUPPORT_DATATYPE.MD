@@ -404,7 +404,51 @@ OK
 
 
 
-##
+## bitmap 位图
+解决在线数据的统计的
+
+## hyperloglog
+解决基础问题
+
+## Geospatial
+Redis3.2增加了对GEO的类型支持，GEO，Geographic，地理信息的缩写，该类型，就是元素的2维坐标，在地图上就是经纬度。redis基于该类型，
+提供；饿经纬度设置，查询，范围查询，距离查询，经纬度Hash等常见的操作。
+```shell script
+# 添加地图信息
+192.168.0.199:6379> GEOADD china:city 116.404269 39.91582 "beijing" 121.478799 31.235456 "shanghai"
+(integer) 2
+# 计算两个地方的距离
+#格式：GEODIST key member1 member2 [unit]  unit可以指定长度单位：m,km,ft等 默认为m
+192.168.0.199:6379> GEODIST china:city beijing shanghai km
+"1068.5677"
+# 返回一个或多个位置元素的 Geohash 表示
+192.168.0.199:6379> geohash china:city beijing
+1) "wx4g0f7n800"
+192.168.0.199:6379> geohash china:city beijing
+1) "wx4g0f7n800"
+192.168.0.199:6379> geohash china:city beijing
+1) "wx4g0f7n800"
+#返回一个或多个位置的经纬度信息，由于采用了geohash算法，返回的经纬度和添加时的数据可能会有细小误差
+#格式： GEOPOS key member [member ...]
+192.168.0.199:6379> geopos china:city beijing shanghai
+1) 1) "116.40426903963088989"
+   2) "39.91581928642635546"
+2) 1) "121.47879928350448608"
+   2) "31.23545629441388627"
+192.168.0.199:6379> geoadd china:city 120.165036 30.278973 hangzhou
+(integer) 1
+#以给定位置为中心，半径不超过给定半径的附近所有位置
+#格式 GEORADIUS key longitude latitude radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count]
+192.168.0.199:6379> georadius china:city 120 30 500 km
+1) "hangzhou"
+2) "shanghai"
+#GEORADIUSBYMEMBER 和GEORADIUS相似，只是中心点不是指定经纬度，而是指定已添加的某个位置作为中心
+#格式： GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count]
+192.168.0.199:6379> georadiusbymember china:city shanghai 200 km
+1) "hangzhou"
+2) "shanghai"
+
+```
 
 
 
