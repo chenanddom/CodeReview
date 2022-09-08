@@ -10,7 +10,8 @@
 |[深入学习MyBatis](./framework-mybatis/README.MD)|[深入学习RabbitMQ消息队](./mq-rabbitmq/README.MD)|
 |[nginx+lua高性能服务器修炼之路](./middlewares-nginx/README.MD)|[Nginx+Lua实现高性能服务器](https://github.com/chenanddom/lua-train)|
 |[nginx+keepalived实现高可用](./hegh-available-keepalived/README.MD)|[canal实现数据修改同步](./synchronous-databases-canal/README.MD)|
-|[Redis深入学习](./database-redis/README.MD)||
+|[Redis深入学习](./database-redis/README.MD)|[单元测试](https://github.com/chenanddom/check-api)|
+|[Kafka的深入学习](./mq-kafka/README.MD)||
 
 
 
