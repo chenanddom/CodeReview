@@ -51,8 +51,10 @@ QUEUED
 ### 事务的冲突
 
 * 悲观锁
+    加锁
 
 * 乐观锁
+    使用版本控制
 示例：
 ```shell script
 ---------------client1-----------------------------------------------------------------
@@ -92,7 +94,92 @@ QUEUED
         * 事务中如果有一条命令执行失败，其后的命令仍然会被执行，不会回滚    
         
         
+* 秒杀的设计
+秒杀的场景通常是高并发的情况，在高并发的情况下，要保证服务的不出现超卖的情况，还要保证服务的不出现遗留的问题。
+方案设计图:
+
+[方案设计图](https://app.diagrams.net/#Hchenanddom%2FCharts%2Fmain%2Frepo%2F%E7%A7%92%E6%9D%80%E6%96%B9%E6%A1%88%E7%9A%84%E8%AE%BE%E8%AE%A1.drawio)
+
+核心代码设计
+
+[JedisPoolConfiguration关于Jedis连接池的配置](./database-redis/src/main/java/com/itdom/config/JedisPoolConfiguration.java)
+
+[核心业务逻辑的代码](./database-redis/src/main/java/com/itdom/service/SeckillService.java)
+
+```java
+ public Boolean secSkillProduct(SecKillProduct product) {
+        product.setProductName("飞科剃须刀");
+        product.setProductNumber("1001");
+        product.setUserId(UUID.randomUUID().toString());
+            Jedis jedis = pool.getResource();
+            String kcKey = "sku:" + product.getProductNumber() + ":product";
+            String userKey = "userId:" + product.getProductNumber() + ":user";
+        try {
+            //1. 监控商品库存的key
+            jedis.watch(kcKey);
+            //2. 获取库存的数据
+            String num = jedis.get(kcKey);
+            Integer number = Integer.valueOf(num);
+            //如果没有库存就提示秒杀还没开始或者秒杀结束
+            if (number == null || number <= 0) {
+                logger.debug("秒杀结束了");
+                //关闭jedis，在jedis3.0之后就弃用了之前使用的pool.returnResource()回收jedis连接，转而使用关闭实现连接的发放回
+                jedis.close();
+                return false;
+            }
+            //判断当前的用户是否已经参与过秒杀
+            boolean isExist = jedis.sismember(userKey, product.getUserId());
+            if (isExist) {
+                logger.debug("你已经秒杀过了，不可以再次参与秒杀!!!");
+                jedis.close();
+                return false;
+            }
+            //开启组队(事务)
+            Transaction multi = jedis.multi();
+            multi.decr(kcKey);
+            multi.sadd(userKey, product.getUserId());
+            //提交事务
+            List<Object> result = multi.exec();
+            if (CollectionUtils.isEmpty(result)) {
+                logger.debug("秒杀失败");
+                jedis.close();
+                return false;
+            }
+            jedis.close();
+            return true;
+        } catch (Exception e) {
+            jedis.close();
+            return false;
+        }
+    }
+```
+* 注意:
+以上的代码的实现已经通过watch监控对应的key，和开启组队事务解决了对秒杀超卖的问题，但是还是会存在一个遗留的问题，因为组队使用了乐观锁，会
+导致执行失败但是商品实际上还存在的情况，此时需要使用lua来实现最稳妥。
         
+#### lua解决redis出现的遗漏问题。
+lua可以将复杂的或者多部的redis操作，写为一个脚本，一次性的提交给redis执行，减少发福连接redis的次数。提升性能。
+
+```lua
+# 参数1
+local userid=KEYS[1];
+#参数2
+local prodid=KEYS[2];
+
+local qtkey="sku:"..prodid..":product";
+local userskey="userId:"..prodid..":user";
+local userExists=redis.call("sismember",userskey,userid);if tonumber(userExists)==1 then
+  return 2;
+end
+local num=redis.call("get",qtkey);
+if tonumber(num)<=0 then
+  return 0;
+else
+  redis.call("decr",qtkey);
+  redis.call("sadd",userskey,userid);
+  end
+  return 1
+``` 
         
         
         
