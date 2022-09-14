@@ -27,6 +27,7 @@ public class CustomerConsumerAutoCommitOffset {
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,true);
         //设置提交的时间间隔，这里表示1000ms
         properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,1000);
+//        properties.put(ConsumerConfig.)
 
         KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
         //订阅kafka消息队列的主题

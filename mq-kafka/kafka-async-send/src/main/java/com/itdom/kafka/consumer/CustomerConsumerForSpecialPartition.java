@@ -30,7 +30,7 @@ public class CustomerConsumerForSpecialPartition {
 //        kafkaConsumer.subscribe(new ArrayList<String>() {{
 //            add("first");
 //        }});
-        kafkaConsumer.assign(new ArrayList<TopicPartition>(){{add(new TopicPartition("first",1));}});
+        kafkaConsumer.assign(new ArrayList<TopicPartition>(){{add(new TopicPartition("first",0));}});
 
         // 3 消费数据
         while (true) {

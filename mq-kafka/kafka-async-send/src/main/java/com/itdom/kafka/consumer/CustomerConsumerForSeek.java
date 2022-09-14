@@ -30,13 +30,11 @@ public class CustomerConsumerForSeek {
 //        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,500);
 
 
-
         KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
         //订阅kafka消息队列的主题
         kafkaConsumer.subscribe(new ArrayList<String>() {{
             add("first");
         }});
-
         Set<TopicPartition> topicPartitionSet = new HashSet<>();
         while (topicPartitionSet.size() == 0) {
             kafkaConsumer.poll(Duration.ofSeconds(1));
