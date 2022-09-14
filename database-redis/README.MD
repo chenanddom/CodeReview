@@ -8,4 +8,9 @@
 
 ## [Redis命令](./REDIS-COMMAND.MD)
 
-## [Redis支持的数据类型]()
+## [Redis支持的数据类型](./REDIS-COMMAND.MD)
+
+
+## [Redis事务-锁-秒杀](./REDIS-TRANSACTION-LOCK-SECKILL.MD)
+
+## [Redis的持久化](./READIS-PERSISTENCE.MD)
