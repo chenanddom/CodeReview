@@ -27,6 +27,7 @@
         <module>long-connection-mqtt</module>
         <module>synchronous-databases-canal</module>
         <module>hegh-available-keepalived</module>
+        <module>databases-elasticsearch</module>
     </modules>
     <dependencyManagement>
         <dependencies>
