@@ -55,7 +55,30 @@ AOF是以日志的形式来记录每个写操作(增量保存)，将Redis执行�
 只许追加文件，但不可以改写文件，redis启动指出会读取改文件重新构建数据，换言之，redis重启的话
 就根据日志文件的内容将写指令从前到后执行一次以完成数据的恢复工作。
 
+* 注意：如果AOF和RDB都开启了，那么redis会默认的选择AOF优先.
+
+* 配置:
+
+```yaml
+# 开启aof
+appendonly yes
+
+# The name of the append only file (default: "appendonly.aof")
+# 设置文件的名字
+appendfilename "appendonly.aof"
 
 
+```
+* 修复aof文件
 
-如果AOF和RDB都开启了，那么redis会默认的选择AOF优先.
+    * 在aof文件随机添加点文件，破坏它的完整性。
+
+    ![破坏aof文件的完整性](./files/redis-aof-1.PNG)
+    
+    * 此时如果再次启动就会出现redis-cli无法连接的情况    
+    
+     ![redis-cli客户端无法连接](./files/redis-aof-2.PNG)
+     
+    * 修复aof文件 redis-check-aof --fix appendonly.aof 
+        
+     ![修复aof文件](./files/redis-aof-3.PNG)
