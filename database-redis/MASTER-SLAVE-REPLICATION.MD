@@ -84,9 +84,37 @@ masterauth test@123
 风险是一旦某个slave宕机，后面的slave都没法备份
 主机挂了，从机还是从机，无法写数据了
 
+
 **情况3：反客为主**
 
 当一个master宕机后，后面的slave可以立刻升为master，其后面的slave不用做任何修改
-可以使用命令：slaveof no one 将从机变为主机
+可以使用命令：slaveof no one 将从机变为主机.
 
+
+## 哨兵机制
+* 添加sentinel.conf配置
+
+```shell script
+# 集群初始化的主节点
+sentinel monitor mymaster 127.0.0.1 6380 1
+# 集群的密码
+sentinel auth-pass mymaster root@123
+
+```
+
+* 启动
+/usr/local/bin/redis-sentinel sentinel.conf 
+![哨兵机制](./files/redis-master-slave-sentinel-1.PNG)
+从上面的图可以看到起初集群内的两个从节点主要是6380和6381
+但是，此时在redis-cli客户端关闭服务6379 shutdown，服务的主节点变换成了6380,6279再次起来也会称为从节点
+
+
+注意：replica-priority 100 可以配置各个节点被选择为主节点的配置，值越大优先级越高。
+
+存在的问题：
+    复制延迟
+    
+    
+* 选择当主机的规则
+![选择当主机的规则](./files/redis-master-slave-sentinel-2.PNG)    
 
