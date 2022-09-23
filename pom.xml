@@ -28,6 +28,7 @@
         <module>synchronous-databases-canal</module>
         <module>hegh-available-keepalived</module>
         <module>databases-elasticsearch</module>
+        <module>mq-rocketmq</module>
     </modules>
     <dependencyManagement>
         <dependencies>
