@@ -6,11 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -115,7 +115,23 @@ public class SeckillService {
     }
 
     public static void main(String[] args) {
-        System.out.printf(scriptStr);
+//        System.out.printf(scriptStr);
+        Set<HostAndPort> nodes = new HashSet<>();
+        nodes.add(new HostAndPort("192.168.0.199",6379));
+        nodes.add(new HostAndPort("192.168.0.199",6380));
+        nodes.add(new HostAndPort("192.168.0.199",6381));
+        nodes.add(new HostAndPort("192.168.0.199",6389));
+        nodes.add(new HostAndPort("192.168.0.199",6390));
+        nodes.add(new HostAndPort("192.168.0.199",6391));
+        DefaultJedisClientConfig.Builder builder = DefaultJedisClientConfig.builder();
+        builder.password("root@123");
+        JedisCluster jedisCluster = new JedisCluster(nodes,builder.build());
+        for (int i = 2; i <=1000 ; i++) {
+        jedisCluster.set("key-00"+i,"v-00"+i);
+
+        }
+        System.out.println(jedisCluster.get("key-001"));
+
     }
 
 }
