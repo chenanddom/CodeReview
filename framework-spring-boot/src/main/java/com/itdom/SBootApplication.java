@@ -1,6 +1,7 @@
 package com.itdom;
 
 import com.itdom.event.UserLoginEvent;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
@@ -16,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 @SpringBootApplication
+@MapperScan(basePackages = {"com.itdom.dao"})
 public class SBootApplication {
     public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, IOException {
         // BeanFactory实际上是核心的容器，applicationContext也是间接的继承了它。

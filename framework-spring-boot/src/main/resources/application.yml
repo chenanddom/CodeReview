@@ -3,11 +3,29 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
-  data:
-    mongodb:
+#  data:
+#    mongodb:
 #      包含副本的写法
-      uri: mongodb://192.168.0.180:27017,192.168.0.180:27018,192.168.0.180:27019/articledb?connect=replicaSet&secondaryOk=true&replicaSet=myrs
+#      uri: mongodb://192.168.0.180:27017,192.168.0.180:27018,192.168.0.180:27019/articledb?connect=replicaSet&secondaryOk=true&replicaSet=myrs
 #      单机的写法
 #      host: 192.168.0.180
 #      port: 27017
 #      database: articledb
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      url: jdbc:mysql://127.0.0.1:3306/propagation_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      username: root
+      password: root@123
+
+mybatis-plus:
+  mapper-locations: classpath*:com/itdom/mapper/*.xml
+  type-aliases-package: com.itdom.po
+  global-config:
+    db-config:
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+      meta-object-handler: com.cicdi.invoice.plus.config.mybatis.MetaObjectHandlerConfig  #配置自动插值
+  configuration:
+    cache-enabled: true
