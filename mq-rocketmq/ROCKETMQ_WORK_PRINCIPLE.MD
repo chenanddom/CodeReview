@@ -361,6 +361,65 @@ Kafka中的Rebalance是由Consumer Leader完成的。而RocketMQ中的Rebalance�
 一致性hash算法的应用场景：
 Consumer数量变化较频繁的场景。
 
+### 订阅关系的一致性
+订阅关系的一致性指的是，同一个消费者组（Group ID相同）下所有Consumer实例所订阅的Topic与Tag及对消息的处理逻辑必须完全一致。否则，
+消息消费的逻辑就会混乱，甚至导致消息丢失。
+
+### offset管理
+>这里的offset指的是Consumer的消费进度offset。
+>消费进度offset是用来记录每个Queue的不同消费组的消费进度的。根据消费进度记录器的不同，可以分为两种模式：本地模式和远程模式。
+
+* offset本地管理模式
+> 当消费模式为广播消费时，offset使用本地模式存储。因为每条消息会被所有的消费者消费，每个消费者管理自己的消费进度，各个消费者之间不存在
+>消费进度的交集。Consumer在广播消费模式下offset相关数据以json的形式持久化到Consumer本地磁盘文件中，默认文件路径为当前用户主目录下的
+>.rocketmq_offsets/${clientId}/${group}/Offsets.json。其中${clientId}为当前消费者id，默认为ip@DEFAULT；${group}为消费者组名称。 
+
+*　offset远程管理模式
+>当消费模式为集群消费时，offset使用远程模式管理。因为所有Cosnumer实例对消息采用的是均衡消费，所有Consumer共享Queue的消费进度。
+>Consumer在集群消费模式下offset相关数据以json的形式持久化到Broker磁盘文件中，文件路径为当前用户主目录下的store/config/consumerOffset.json。
+>Broker启动时会加载这个文件，并写入到一个双层Map（ConsumerOffsetManager）。外层map的key为topic@group，value为内层map。内层map的
+>key为queueId，value为offset。当发生Rebalance时，新的Consumer会从该Map中获取到相应的数据来继续消费。 集群模式下offset采用远程管
+>理模式，主要是为了保证Rebalance机制。
+
+* offset用途
+费者是如何从最开始持续消费消息的？消费者要消费的第一条消息的起始位置是用户自己通过consumer.setConsumeFromWhere()方法指定的。
+在Consumer启动后，其要消费的第一条消息的起始位置常用的有三种，这三种位置可以通过枚举类型常量设置。这个枚举类型为ConsumeFromWhere。
+![offset用途](./files/rocketmq-consume-offset-1.png)
+>CONSUME_FROM_LAST_OFFSET：从queue的当前最后一条消息开始消费
+>CONSUME_FROM_FIRST_OFFSET：从queue的第一条消息开始消费
+>CONSUME_FROM_TIMESTAMP：从指定的具 体时间戳位置的消息开始消费。这个具体时间戳是通过另外一个语句指定的 。
+>consumer.setConsumeTimestamp(“20210701080000”) yyyyMMddHHmmss
+
+当消费完一批消息后，Consumer会提交其消费进度offset给Broker，Broker在收到消费进度后会将其更新到那个双层Map（ConsumerOffsetManager）及consumerOffset.json文件中，然后向该Consumer进行ACK，而ACK内容中包含三项数据：当前消费队列的最小offset（minOffset）、最大offset（maxOffset）、及下次消费的起始offset（nextBeginOffset）。
+当rocketMQ对消息的消费出现异常时，会将发生异常的消息的offset提交到Broker中的重试队列。系统在发生消息消费异常时会为当前的topic@group创建一个重试队列，该队列以%RETRY%开头，到达重试时间后进行消费重试。
+
+* offset的同步提交与异步提交
+    >集群消费模式下，Consumer消费完消息后会向Broker提交消费进度offset，其提交方式分为两种：
+    * 同步提交：消费者在消费完一批消息后会向broker提交这些消息的offset，然后等待broker的成功响应。若在等待超时之前收到了成功响应，
+      则继续读取下一批消息进行消费（从ACK中获取nextBeginOffset）。若没有收到响应，则会重新提交，直到获取到响应。而在这个等待过程中，
+      消费者是阻塞的。其严重影响了消费者的吞吐量。
+    * 异步提交：消费者在消费完一批消息后向broker提交offset，但无需等待Broker的成功响应，可以继续读取并消费下一批消息。这种方式增加了
+      消费者的吞吐量。但需要注意，broker在收到提交的offset后，还是会向消费者进行响应的。可能还没有收到ACK，此时Consumer会从Broker中
+      直接获取nextBeginOffset。
+
+### 消费幂等
+* 消费幂等的定义
+>当出现消费者对某条消息重复消费的情况时，重复消费的结果与消费一次的结果是相同的，并且多次消费并未对业务系统产生任何负面影响，
+>那么这个消费过程就是消费幂等的。>在互联网应用中，尤其在网络不稳定的情况下，消息很有可能会出现重复发送或重复消费。如果重复的
+>消息可能会影响业务处理，那么就应该对消息做幂等处理。
+ 
+* 消息重复的场景分析
+    >什么情况下可能会出现消息被重复消费呢？最常见的有以下三种情况：
+    * 发送时消息重复
+        >当一条消息已被成功发送到Broker并完成持久化，此时出现了网络闪断，从而导致Broker对Producer应答失败。 如果此时Producer意识到消息发送失败并尝试再次发送消息，此时Broker中就可能会出现两条内容相同并且Message ID也相同的消息，那么后续Consumer就一定会消费两次该消息。
+    * 消费时消息重复
+        >消息已投递到Consumer并完成业务处理，当Consumer给Broker反馈应答时网络闪断，Broker没有接收到消费成功响应。为了保证消息至少被消费一次的原则，Broker将在网络恢复后再次尝试投递之前已被处理过的消息。此时消费者就会收到与之前处理过的内容相同、Message ID也相同的消息。
+    * Rebalance时消息重复
+        >当Consumer Group中的Consumer数量发生变化时，或其订阅的Topic的Queue数量发生变化时，会触发Rebalance，此时Consumer可能会收到曾经被消费过的消息。
+
+ 
+
+
 
 
 ### 1.commitlog文件
