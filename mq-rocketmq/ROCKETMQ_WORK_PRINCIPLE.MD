@@ -290,17 +290,76 @@ Consumer主动从Broker中拉取消息，主动权由Consumer控制。一旦获�
     导致在Rebalance结束之后瞬间需要消费很多消息。
 
 
+* Rebalance产生的原因
+    > 导致Rebalance产生的原因，无非就是两个:消费者所订阅Topic的Queue数量发生变化，或者消费者组中的消费者数量发生了变化:
+    * Queue数量发生变化的场景:
+        * Broker扩容或者缩容
+        * Broker升级运维
+        * Broker与NameServer之间的网络出现了异常
+        * Queue扩容或者缩容
+    * 消费者数量发生变化的场景
+        * Consume Group扩容或者缩容
+        * Consumer升级运维
+        * Consumer与NameServer间事务网络异常
+* Rebalance过程
+> 在Broker中维护着许多Map集合，这集合东涛存放着Topic中的Queue的信息，Consumer Group中的Consumer实例的信息。一旦发小消费者所订阅的Queue
+>数量发生变化，或者消费者组中消费者的数量发生变化，立即向Consumer Group中的每个实例发出Rebalance通知。
+> TopicConfigManager:key是topic名称，value是TopicConfig。TopicConfig中维护着该Topic中所有的Queue的数据
+>ConsumerManager:key是Consumer Group Id,value是ConsumerGroupInfo.ConsumerGroupInfo中维护着该Group中所有的Consumer实例数据
+>ConsumerOffsetManager: key为Topic有订阅该Topic的Group的组合，即topic@group，value是一个内层Map。内层的Map的key为QueueId，内层
+>的value为该Queue的消费进度的offset       
 
 
+* 与Kafka对比
+```text
+在Kafka中，一旦发现出现了Rebalance条件，Broker会调用Group Coordinator来完成Rebalance。Coordinator是Broker中的一个进程。
+Coordinator会在Consumer Group中选出一个Group Leader。由这个Leader根据自己本身组情况完成Partition分区的再分配。这个再分配
+结果会上报给Coordinator，并由Coordinator同步给Group中的所有Consumer实例。
+Kafka中的Rebalance是由Consumer Leader完成的。而RocketMQ中的Rebalance是由每个Consumer自身完成的，Group中不存在Leader。
+```
+
+#### Queue分配算法
+> 一个Topic中的Queue职能由一个Consumer Group中的一个Consumer进行消费，而一个Consumer可以同时西奥菲多个Queue中
+>中的消息。那么Queue与Consumer间的配对关系是如何确定的，即Queue要分配给哪个Consumer进行消费，也是有算法策略的。常
+>见的有四种策略。这些策略是通过在创建Consumer时的构造器传进去的。
+
+* 平均分配策略
+
+![平均分配策略](./files/rocketmq-queue-allocation-policy.png)
+
+>该算法是要根据avg = QueueCount / ConsumerCount的计算结果进行分配的。如果能够整除，则按顺序将avg个Queue逐个分配Consumer;
+>如果不能整除，则将多余出的Queue按照Consumer顺序逐个分配。该算法即，先计算好每个Consumer应该分得几 个Queue，然后再依次将这些
+>数量的Queue逐个分配个Consumer。
+       
+* 环形平均策略
+
+![环形平均策略](./files/rocketmq-annular-policy.png)                                  
+
+> 环形平均算法是指，根据消费者的顺序，一次在有Queue队列组成的环形图形中逐个分配。该算法不用事先计算每个Consumer需要分配几 个Queue，
+>直接一个一个分即可。
+                                            
+* 一致性hash策略
+
+![一致性hash策略](./files/rocketmq-hash-consistency-policy.png)
+
+> 该算法会将consumer的hash值作为Node节点存放在hash环上，然后间豪华queue的hash值环上，通过顺时针方向，距离queue最近的那个consumer就是
+该queue要分配的consumer.该算法存在的问题是：分配不均
+
+* 同机房策略
+
+![同机房策略](./files/rocketmq-same-machine-room.png)
 
 
+> 该算法会根据queue的部署机房位置和consumer的位置，过滤出当前consumer相同机房饿queue。然后按照平均分配的策略对相同机房的queue
+>进行分配。如果没有同计方queue，则按照平均分配的策略或者环形平均策略对所有的queue进行分配。
 
-
-
-
-
-
-
+对比:
+一致性hash算法存在的问题：
+两种平均分配策略的分配效率较高，一致性hash策略的较低。因为一致性hash算法较复杂。另外，一致性hash策略分配的结果也很大可能上存在不平均的情况。
+一致性hash算法存在的意义：
+其可以有效减少由于消费者组扩容或缩容所带来的大量的Rebalance。
+一致性hash算法的应用场景：
+Consumer数量变化较频繁的场景。
 
 
 
