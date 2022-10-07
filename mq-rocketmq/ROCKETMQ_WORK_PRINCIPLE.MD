@@ -254,22 +254,40 @@ Consumer主动从Broker中拉取消息，主动权由Consumer控制。一旦获�
 
 >集群消费模式下，相同的Consumer Group的每个Consumer实例平均分摊同一个Topic的消息。即每条消息只会被发送搭配ConsumerGroup中的某个Consumer
 
-## 消息的消费
+* 消息进度保存
+    * 广播模式：消费进度保存在consumer端。因为广播模式下consumer group中每个consumer都会消费所有消息，但它们的消费进度是不同。
+    所以consumer各自保存各自的消费进度。
+    * 集群模式：消费进度保存在broker中。consumer group中的所有consumer共同消费同一个Topic中的消息，同一条消息只会被消费一次。
+    消费进度会参与到了消费的负载均衡中，故消费进度是需要共享的。下图是broker中存放的各个Topic的各个Queue的消费进度。
+    (这个文件在conf/consumerOffset.json)
 
 
 
 
 
+#### Rebalance机制
+>Rebalance机制讨论的前提是：集群消费。Rebalance即再均衡，指的是，将一个Topic下的多个Queue在同一个Consumer Group中的多个Consumer间
+>进行重新分配的过程。
+
+![rebalance](./files/rocketmq-consume-rebalace.png)
 
 
+* rebalance的限制
+>由于一个队列最多分配给一个消费者，因此当某个消费者组下的消费者实例数量大于队列的数量时，多余的消费者实例将分配不到任何队列。
 
 
-
-
-
-
-
-
+* Rebalance危害
+    > Rebalance的在提升消费能力的同时，也带来了新的问题
+    * 消费暂停：在只有一个Consumer的时候，其负责消费所有的队列；在新增了一个Consumer之后会触发Rebalance的发生。此时原Consumer就需要
+    暂停部分队列的小欸，等到这些队列分配给新的Consumer之后，这些暂替的消费的队列才能继续别消费。
+    * 消费重复：Consumer在消费新分配给自己的队列的时候，必须接着之前Consumer提交的消费进度的offset继续消费。然后默认的情况下，offset是
+    异步提交的，这个有你性导致提交到Broker的offset与Consumer实际消费的消息并不一直。这个不一致的差值可能会重复消费的消息。
+    >同步提交：consumer提交了其消费完毕的一批消息的offset给broker后，需要等待broker的成功ACK。当收到ACK后，consumer才会继续获取并消
+    >费下一批消息。在等待ACK期间，consumer是阻塞的。异步提交：consumer提交了其消费完毕的一批消息的offset给broker后，不需要等待broker
+    >的成功ACK。consumer可以直接获取并消费下一批消息。对于一次性读取消息的数量，需要根据具体业务场景选择一个相对均衡的是很有必要的。
+    >因为数量过大，系统性能提升了，但产生重复消费的消息数量可能会增加；数量过小，系统性能会下降，但被重复消费的消息数量可能会减少。
+    * 消费突刺：由于Rebalance可能导致重复消费，如果需要重复消费的消息过多，或者因为Rebalance暂停过长从而导致积压了部分消息，那么可能会
+    导致在Rebalance结束之后瞬间需要消费很多消息。
 
 
 
