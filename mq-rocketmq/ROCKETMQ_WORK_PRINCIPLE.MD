@@ -240,8 +240,21 @@ Consumer主动从Broker中拉取消息，主动权由Consumer控制。一旦获�
     * push：封装了对关联Queue的遍历，实时性强，但会占用较多的系统资源
 
 
+###消费模式
+* 广播消费
+![广播消费](./files/rocketmq-broadcast-consume.png)
+
+> 广播消费模式下，相同的Consumer Group的每个Consumer实例都接收相同的一个Topic的全量消息。即每条消息都会被发送到Consumer Group中的每
+>个Consumer
 
 
+* 集群消费
+
+![集群消费](./files/rocketmq-cluster-consume.png)
+
+>集群消费模式下，相同的Consumer Group的每个Consumer实例平均分摊同一个Topic的消息。即每条消息只会被发送搭配ConsumerGroup中的某个Consumer
+
+## 消息的消费
 
 
 
