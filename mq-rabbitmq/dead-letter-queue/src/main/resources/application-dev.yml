@@ -1,0 +1,23 @@
+server:
+  port: 8101
+spring:
+  rabbitmq:
+    host: 192.168.0.187
+    username: chendom
+    password: root@123
+    virtual-host: /itdom
+    connection-timeout: 1000ms
+  #手动通知
+    listener:
+      direct:
+        acknowledge-mode: manual
+  #默认只有消费者的个数
+      simple:
+        concurrency: 1
+        # 消息消费失败之后不会重新进入原队列
+        default-requeue-rejected: false
+        acknowledge-mode: manual
+  # 最大的消费者
+  jms:
+    listener:
+       max-concurrency: 5
