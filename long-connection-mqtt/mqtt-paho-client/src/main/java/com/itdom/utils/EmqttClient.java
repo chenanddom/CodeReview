@@ -51,6 +51,8 @@ public class EmqttClient {
         options.setAutomaticReconnect(true);
         //设置临时会话
         options.setCleanSession(true);
+        options.setKeepAliveInterval(30);
+
         iMqttClient.setCallback(mqttCallback);
         try {
             iMqttClient.connect(options);
