@@ -29,6 +29,7 @@
         <module>hegh-available-keepalived</module>
         <module>databases-elasticsearch</module>
         <module>mq-rocketmq</module>
+        <module>network-model</module>
     </modules>
     <dependencyManagement>
         <dependencies>
