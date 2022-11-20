@@ -30,6 +30,7 @@
         <module>databases-elasticsearch</module>
         <module>mq-rocketmq</module>
         <module>network-model</module>
+        <module>build-tools-gradle</module>
     </modules>
     <dependencyManagement>
         <dependencies>
