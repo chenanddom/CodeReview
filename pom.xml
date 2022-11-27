@@ -31,6 +31,7 @@
         <module>mq-rocketmq</module>
         <module>network-model</module>
         <module>build-tools-gradle</module>
+        <module>version-management-tool-git</module>
     </modules>
     <dependencyManagement>
         <dependencies>
