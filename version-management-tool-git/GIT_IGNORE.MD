@@ -1,0 +1,37 @@
+#Git ignore文件配置
+
+* git.ignore文件的模板
+```ignorelang
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+hs_err_pid*
+
+.classpath
+.project
+.settings
+target
+.idea
+*.iml
+```
+* .gitconfig文件添加配置如下:
+```ignorelang
+[core]
+	excludesfile = C:/Users/username/git.ignore
+```

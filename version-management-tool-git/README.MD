@@ -6,3 +6,5 @@
 ## Github的操作
 [Github的操作](./OPERATE_GITHUB.MD)
 
+## git .ignore的配置
+[git .ignore的配置](./GIT_IGNORE.MD)
