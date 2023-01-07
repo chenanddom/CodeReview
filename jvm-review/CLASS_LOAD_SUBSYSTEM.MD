@@ -47,8 +47,92 @@ public class CustomerClazz {
 ```
 
 
+## 类加载器分类
+* 虚拟机自带的加载器
+    * 启动类加载其(引导类加载器，Bootstrap ClassLoader)
+        * 这个类加载使用C/C++语言实现的，嵌套在JVM内部
+        * 它用来加载Java的核心库(JAVA_HOME/jre/lib/rt.jar、resources.jar或者sun.boot.class.path路径下的内容)，用于提供JVM自身需要
+        的类
+        * 并不继承子java.lang.ClassLoader，没有父加载器
+        * 加载扩展类和应用程序类加载其，并指定为他们的父类加载器
+        * 处于安全考虑，Bootstap启动类加载器只加载包名为java、javax、sun等开头的类
+    * 扩展类加载器(Extension ClassLoader)
+        * Java语言编写，由sun.misc.Launcher$ExtClassLoader.
+        * 派生于ClassLoader类
+        * 父类加载器为启动类加载器
+        * 从java.ext.dirs系统属性所指定的目录中加载类库，或者从JDK的安装目录下的jre/lib/ext子目录(扩展目录)下加载类库。如果用户创建的JAR
+          放在此目录下，也会自带由扩展类加载器加载。
+    * 应用程序类加载器(系统类加载器，AppClassLoader)
+        * java语言编写，由sun.misc.Launcher$AppClassLoader实现
+        * 派生于ClassLoader类
+        * 父类加载器为扩展类加载器
+        * 它负责加载环境变量classpath或者系统属性 java.class.path指定路径下的类库
+        * 该类加载是程序中默认的类加载器，一般来说，Java应用的类都是由它来完成加载的
+        * 通过ClassLoader#getSystemClassLoader()方法可以获取该类加载器.
 
 
+
+* 示例代码1
+```java
+public class ClassLoaderTest {
+    public static void main(String[] args) {
+        //获取系统类加载器
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+//        两次获取系统类加载器的值都相同：sun.misc.Launcher$AppClassLoader@18b4aac2 ，这说明系统类加载器是全局唯一的
+        System.out.println(systemClassLoader);//sun.misc.Launcher$AppClassLoader@18b4aac2
+        //获取其上层:扩展类加载器
+        ClassLoader extClassLoader = systemClassLoader.getParent();
+        System.out.println(extClassLoader);//sun.misc.Launcher$ExtClassLoader@38af3868
+        //获取其上层：获取不到引导类加载器
+        ClassLoader bootStrapClassLoader = extClassLoader.getParent();
+//        我们尝试获取引导类加载器，获取到的值为 null ，这并不代表引导类加载器不存在，因为引导类加载器右 C/C++ 语言，我们获取不到
+        System.out.println(bootStrapClassLoader);//null
+        //对于用户自定义类来说:默认使用系统类加载其进行加载
+        ClassLoader classLoader = ClassLoaderTest.class.getClassLoader();
+//        两次获取系统类加载器的值都相同：sun.misc.Launcher$AppClassLoader@18b4aac2 ，这说明系统类加载器是全局唯一的
+        System.out.println(classLoader);//sun.misc.Launcher$AppClassLoader@18b4aac2
+        //String类使用引导类加载器进行加载的，
+        ClassLoader classLoader1 = String.class.getClassLoader();
+        System.out.println(classLoader1);//null
+    }
+}
+```
+* 示例代码2
+```java
+public class ClazzLoaderTest2 {
+    public static void main(String[] args) {
+
+        System.out.println("--------------启动类加载器--------------------");
+        //获取BootstrapClassLoader能够加载的api路径
+        URL[] urLs = Launcher.getBootstrapClassPath().getURLs();
+        for (URL urL : urLs) {
+            System.out.println(urL.toString());
+        }
+        /**
+         * 执行结果:
+         * --------------启动类加载器--------------------
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/resources.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/rt.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/sunrsasign.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/jsse.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/jce.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/charsets.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/lib/jfr.jar
+         * file:/D:/develop_software/JDK/install_package/jdk-8u311/jre/classes
+         */
+        System.out.println("--------------------扩展类加载器-------------------------------");
+        String extDirs = System.getProperty("java.ext.dirs");
+        for (String path : extDirs.split(";")) {
+            System.out.println(path);
+        }
+        /**
+         * 执行结果:
+         * D:\develop_software\JDK\install_package\jdk-8u311\jre\lib\ext
+         * C:\WINDOWS\Sun\Java\lib\ext
+         */
+    }
+}
+```
 
 
 
