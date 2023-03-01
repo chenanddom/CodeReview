@@ -11,6 +11,8 @@
 ## PC寄存器
 [](./)
 
+## 堆区
+[堆区](./HEAP.MD)
 
 [15垃圾回收算法](./GARBAGE_COLLECTION_ALGORITHM.MD)
 
